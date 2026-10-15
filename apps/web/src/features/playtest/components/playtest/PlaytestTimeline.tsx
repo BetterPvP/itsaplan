@@ -26,7 +26,7 @@ export default function PlaytestTimeline({ playtest }: { playtest: PlaytestState
         return (
           <Fragment key={stage}>
             {i > 0 && (
-              <div className="relative -mx-[12px] mt-[9px] h-0.5 flex-1 overflow-hidden bg-border">
+              <div className="relative -mx-[18px] mt-[9px] h-0.5 flex-1 overflow-hidden bg-border">
                 {(done || active) && <div className="absolute inset-0 bg-emerald-500" />}
                 {i === current + 1 && !failed && !ended && (
                   <div
@@ -36,7 +36,7 @@ export default function PlaytestTimeline({ playtest }: { playtest: PlaytestState
                 )}
               </div>
             )}
-            <div className="flex w-11 shrink-0 flex-col items-center gap-1">
+            <div className="flex w-14 shrink-0 flex-col items-center gap-1">
               <div className="relative z-10 flex size-5 items-center justify-center">
                 {active && !failed && (
                   <span

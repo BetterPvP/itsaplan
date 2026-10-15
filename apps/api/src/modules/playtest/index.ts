@@ -315,6 +315,21 @@ export const playtestRoutes = new Elysia({ name: 'playtest', detail: { tags: ['P
     },
   )
 
+  .delete(
+    '/issues/:issueId/playtest/approvals',
+    async ({ params, user }) =>
+      call(path((await issueTarget(params.issueId)).identifier, '/approvals'), {
+        method: 'DELETE',
+        actor: actorOf(user),
+      }),
+    {
+      params: issueParams,
+      playtestReview: 'create',
+      response: ok,
+      detail: { summary: 'Take back your review of the playtest build' },
+    },
+  )
+
   .post(
     '/issues/:issueId/playtest/testers',
     async ({ params, user }) => {
