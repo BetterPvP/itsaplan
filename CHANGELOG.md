@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.6.0](https://github.com/croffasia/itsaplan/compare/v1.5.0...v1.6.0) (2026-10-15)
+
+
+### Features
+
+* invites expire and can be renewed under a new link ([#541](https://github.com/croffasia/itsaplan/issues/541)) ([22f6952](https://github.com/croffasia/itsaplan/commit/22f69523a5691fcfad3c3adc52ecf6568d51b7f1))
+
+
+### Bug Fixes
+
+* an MCP authorization error reaches the person instead of being lost ([#565](https://github.com/croffasia/itsaplan/issues/565)) ([9cf575e](https://github.com/croffasia/itsaplan/commit/9cf575e8b4cd7cb4f892c23b15c073fe402cf18c))
+* **web:** a refused sign-up says why, in the visitor's language ([#553](https://github.com/croffasia/itsaplan/issues/553)) ([80a8683](https://github.com/croffasia/itsaplan/commit/80a868355a5b6c2377fed895bb60f759a870fea9))
+
+
+### Refactoring
+
+* **api:** let an extending build refuse internal agent work ([#557](https://github.com/croffasia/itsaplan/issues/557)) ([1e2e0d2](https://github.com/croffasia/itsaplan/commit/1e2e0d20f590000a0a9c8f5a46ca99ca26fd941c))
+
+
+### Build
+
+* **api:** the image no longer ships drizzle-kit, tsx and esbuild ([#560](https://github.com/croffasia/itsaplan/issues/560)) ([5fc48e9](https://github.com/croffasia/itsaplan/commit/5fc48e9f84f67fbc460f3886ea021c2e78c797ea))
+* **web:** the release image no longer ships npm, npx, corepack or yarn ([#559](https://github.com/croffasia/itsaplan/issues/559)) ([b73a118](https://github.com/croffasia/itsaplan/commit/b73a118cd43b0f324cbf6bbbd864cfc0e86db9ec))
+
+
+### Tests
+
+* **api:** flush agent traces before the next test resets the database ([#558](https://github.com/croffasia/itsaplan/issues/558)) ([c6941b2](https://github.com/croffasia/itsaplan/commit/c6941b2fab711a3ea5574d9cdd861031771d061f))
+* **api:** settle the import mapping before asserting its rejection ([#561](https://github.com/croffasia/itsaplan/issues/561)) ([d455060](https://github.com/croffasia/itsaplan/commit/d4550602f396febc974134bc0d24a4278b0b4831))
+
 ## [1.5.0](https://github.com/croffasia/itsaplan/compare/v1.4.0...v1.5.0) (2026-10-13)
 
 
