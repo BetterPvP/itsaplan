@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "Placeholder: '{user}' nama pengguna Anda, '{key}' kunci isu, '{title}' judul, '{cycle}' siklus isu. Placeholder tanpa nilai dihapus beserta pemisahnya.",
     "branchNamePreview": "Contoh:",
     "branchNameSampleTitle": "Perbaiki kamp kosong",
-    "branchNameSampleCycle": "Kamp"
+    "branchNameSampleCycle": "Minggu 2"
   },
   "states": {
     "addState": "Tambah status {type}",

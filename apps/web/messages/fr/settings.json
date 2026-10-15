@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "Variables : '{user}' votre nom d''utilisateur, '{key}' la clé du ticket, '{title}' le titre, '{cycle}' le cycle du ticket. Une variable sans valeur est retirée avec son séparateur.",
     "branchNamePreview": "Exemple :",
     "branchNameSampleTitle": "Corriger les camps vides",
-    "branchNameSampleCycle": "Camps"
+    "branchNameSampleCycle": "Semaine 2"
   },
   "states": {
     "addState": "Ajouter un état {type}",

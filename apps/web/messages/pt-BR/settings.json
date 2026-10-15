@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "Marcadores: '{user}' seu nome de usuário, '{key}' a chave da issue, '{title}' o título, '{cycle}' o ciclo da issue. Um marcador sem valor é omitido junto com o separador.",
     "branchNamePreview": "Exemplo:",
     "branchNameSampleTitle": "Corrigir acampamentos vazios",
-    "branchNameSampleCycle": "Acampamentos"
+    "branchNameSampleCycle": "Semana 2"
   },
   "states": {
     "addState": "Adicionar estado {type}",
