@@ -205,6 +205,7 @@ jobs:
           password: ${{ github.token }}
 
       - name: Point stable at the new images
+        if: env.WEBHOOK != ''
         run: |
           set -euo pipefail
           for s in api worker web; do
@@ -215,6 +216,7 @@ jobs:
           cat previous.env
 
       - name: Redeploy and wait for the new version
+        if: env.WEBHOOK != ''
         run: |
           set -euo pipefail
           curl -fsS -X POST "$WEBHOOK" -o /dev/null
@@ -228,6 +230,10 @@ jobs:
           done
           echo "::error::plan.brauw.dev did not report $want with a working web app"
           exit 1
+
+      - name: Production is not on the fork yet
+        if: env.WEBHOOK == ''
+        run: echo "::notice::DOKPLOY_WEBHOOK is not set, so stable stays where it is"
 
       - name: Roll back stable
         if: failure()
