@@ -9,9 +9,11 @@ import {
   RefreshCw,
   RotateCw,
   Save,
+  Undo2,
   Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -50,8 +52,12 @@ export default function PlaytestPageActions({
       toast('Waiting for a free server', { description: 'The project runs as many as it allows.' });
     return res;
   });
-  const review = usePlaytestCommand(async (verdict: Verdict) => {
-    await playtestApi.review(issueId, verdict);
+  const { data: session } = useSession();
+  // A review sets or replaces the caller's verdict on the current build; clicking the
+  // verdict they already gave takes it back.
+  const review = usePlaytestCommand(async (verdict: Verdict | null) => {
+    if (verdict) await playtestApi.review(issueId, verdict);
+    else await playtestApi.unreview(issueId);
     return { ok: true };
   }, 'Review saved');
   const testers = usePlaytestCommand(async () => {
@@ -63,6 +69,9 @@ export default function PlaytestPageActions({
   const running = playtest != null && playtest.stage !== 'ended';
   const connected = running && playtest.connected;
   const hasBuild = !!playtest?.commit && running;
+  const mine = data.approvals.find(
+    (r) => r.userId === session?.user.id && r.commit === playtest?.commit,
+  )?.verdict;
   const testersReady = data.settings?.testersWebhookSet ?? false;
   const more = [
     can.restart &&
@@ -110,18 +119,38 @@ export default function PlaytestPageActions({
             variant="outline"
             className="h-8 gap-1.5"
             disabled={!hasBuild || review.isPending}
-            onClick={() => review.mutate(['approved'], { onSuccess: refresh })}
+            onClick={() =>
+              review.mutate([mine === 'approved' ? null : 'approved'], { onSuccess: refresh })
+            }
           >
-            <Check className="size-3.5" /> Approve
+            {mine === 'approved' ? (
+              <>
+                <Undo2 className="size-3.5" /> Remove approval
+              </>
+            ) : (
+              <>
+                <Check className="size-3.5" /> Approve
+              </>
+            )}
           </Button>
           <Button
             size="sm"
             variant="outline"
             className="h-8 gap-1.5"
             disabled={!hasBuild || review.isPending}
-            onClick={() => review.mutate(['changes'], { onSuccess: refresh })}
+            onClick={() =>
+              review.mutate([mine === 'changes' ? null : 'changes'], { onSuccess: refresh })
+            }
           >
-            <MessageSquareWarning className="size-3.5" /> Request changes
+            {mine === 'changes' ? (
+              <>
+                <Undo2 className="size-3.5" /> Withdraw request
+              </>
+            ) : (
+              <>
+                <MessageSquareWarning className="size-3.5" /> Request changes
+              </>
+            )}
           </Button>
         </>
       )}
