@@ -85,6 +85,21 @@ const GROUP_DEFS: PermissionGroup[] = [
   { key: 'documents', resources: ['documents'] },
   { key: 'notes', resources: ['note_boards'] },
   {
+    key: 'playtests',
+    resources: [
+      'playtests',
+      'playtest_base',
+      'playtest_reviews',
+      'playtest_testers',
+      'playtest_console',
+      'playtest_players',
+      'playtest_files',
+      'playtest_logs',
+      'playtest_sensitive',
+      'playtest_settings',
+    ],
+  },
+  {
     key: 'ai',
     resources: ['ai_agents', 'integrations', 'agent_skills', 'agent_tools', 'agent_usage'],
   },

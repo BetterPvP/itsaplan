@@ -11,7 +11,3 @@ export const STAGE_LABELS: Record<Stage, string> = {
 
 export const formatTime = (ts: number) =>
   new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-// The playtest repository's issue link: a branch or pull request linked through the
-// Git integration makes an issue eligible.
-export const PLAYTEST_REPOSITORY = 'betterpvp/betterpvp';

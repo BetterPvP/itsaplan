@@ -22,5 +22,11 @@ export function usePermissionLabels() {
       label(`resources.${resource}`, prettify(resource)),
     actionLabel: (action: PermissionAction) => label(`actions.${action}`, prettify(action)),
     groupLabel: (key: string) => label(`groups.${key}`, prettify(key)),
+    // What each action of a resource means, for resources where the generic action
+    // names do not say it. Null when the messages carry none.
+    resourceHint: (resource: PermissionResource) => {
+      const key = `hints.${resource}` as Parameters<typeof t.has>[0];
+      return t.has(key) ? t(key) : null;
+    },
   };
 }

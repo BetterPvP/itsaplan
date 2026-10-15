@@ -48,7 +48,7 @@ export default function RoleEditorPanel({
 }) {
   const t = useTranslations('teams.roles');
   const tCommon = useTranslations('common');
-  const { actionLabel, resourceLabel, groupLabel } = usePermissionLabels();
+  const { actionLabel, resourceLabel, groupLabel, resourceHint } = usePermissionLabels();
   const [name, setName] = useState(role?.name ?? '');
   const [matrix, setMatrix] = useState<Permissions>(() =>
     matrixFromCatalog(catalog, role?.permissions),
@@ -199,7 +199,14 @@ export default function RoleEditorPanel({
                     </tr>
                     {group.resources.map((resource) => (
                       <tr key={resource} className="border-b last:border-b-0">
-                        <td className="py-2 pr-2 pl-6">{resourceLabel(resource)}</td>
+                        <td className="py-2 pr-2 pl-6">
+                          {resourceLabel(resource)}
+                          {resourceHint(resource) && (
+                            <div className="text-[11px] text-muted-foreground">
+                              {resourceHint(resource)}
+                            </div>
+                          )}
+                        </td>
                         {actions.map((action) => (
                           <td key={action} className="px-1 py-2 text-center">
                             {supports(resource, action) && (

@@ -1,7 +1,6 @@
 import { t } from 'elysia';
 
 export const issueParams = t.Object({ issueId: t.Numeric() });
-export const projectParams = t.Object({ projectKey: t.String() });
 
 export const consoleBody = t.Object({ command: t.String({ minLength: 1, maxLength: 1000 }) });
 export const opsBody = t.Object({
@@ -13,57 +12,46 @@ export const fileBody = t.Object({
   path: t.String({ minLength: 1, maxLength: 300 }),
   content: t.String({ maxLength: 512 * 1024 }),
 });
-export const eventsQuery = t.Object({ after: t.Optional(t.Numeric()) });
-
-export const configBody = t.Object({
-  defaultOps: t.Array(t.String({ pattern: '^[A-Za-z0-9_]{1,16}$' }), { maxItems: 50 }),
-  filePatterns: t.Array(t.String({ minLength: 1, maxLength: 200 }), { maxItems: 50 }),
-  autoStartColumnId: t.Nullable(t.Integer()),
+export const eventsQuery = t.Object({
+  after: t.Optional(t.Numeric()),
+  reveal: t.Optional(t.BooleanString()),
+});
+export const logQuery = t.Object({ reveal: t.Optional(t.BooleanString()) });
+export const targetQuery = t.Object({ actor: t.Optional(t.String({ maxLength: 100 })) });
+export const reviewBody = t.Object({
+  verdict: t.Union([t.Literal('approved'), t.Literal('changes')]),
+});
+export const shareBody = t.Object({
+  kind: t.Union([t.Literal('console'), t.Literal('startup')]),
 });
 
-const Stage = t.Union([
-  t.Literal('queued'),
-  t.Literal('build'),
-  t.Literal('launch'),
-  t.Literal('boot'),
-  t.Literal('ready'),
-  t.Literal('ended'),
-]);
+const Player = t.String({ pattern: '^[A-Za-z0-9_]{1,16}$' });
+const Minutes = t.Integer({ minimum: 5, maximum: 720 });
 
-export const PlaytestState = t.Object({
-  issue: t.String(),
-  stage: Stage,
-  failed: t.Boolean(),
-  stages: t.Record(t.String(), t.Number()),
-  branch: t.Nullable(t.String()),
-  commit: t.Nullable(t.String()),
-  address: t.Nullable(t.String()),
-  runUrl: t.Nullable(t.String()),
-  ops: t.Array(t.String()),
-  connected: t.Boolean(),
-  updatedAt: t.Number(),
-});
-
-export const PlaytestResponse = t.Object({
-  configured: t.Boolean(),
-  // The issue has a branch or pull request in the playtest repository.
-  eligible: t.Boolean(),
-  branch: t.Nullable(t.String()),
-  playtest: t.Nullable(PlaytestState),
-  feed: t.Array(
-    t.Object({ id: t.Number(), ts: t.Number(), message: t.String(), failed: t.Boolean() }),
-  ),
-});
-
-export const ProjectPlaytestsResponse = t.Array(
-  t.Object({ issue: t.String(), stage: Stage, failed: t.Boolean() }),
+export const configBody = t.Partial(
+  t.Object({
+    defaultOps: t.Array(Player, { maxItems: 50 }),
+    filePatterns: t.Array(t.String({ minLength: 1, maxLength: 200 }), { maxItems: 50 }),
+    autoStartColumnId: t.Nullable(t.Integer()),
+    requiredApprovals: t.Integer({ minimum: 0, maximum: 20 }),
+    maxConcurrent: t.Nullable(t.Integer({ minimum: 1, maximum: 50 })),
+    testersWebhook: t.String({ maxLength: 300 }),
+    share: t.Object({
+      provider: t.Union([t.Literal('mclogs'), t.Literal('s3'), t.Literal('custom')]),
+      custom: t.Object({
+        url: t.String({ maxLength: 300 }),
+        body: t.Union([t.Literal('text'), t.Literal('json')]),
+        responseField: t.String({ maxLength: 100 }),
+        linkTemplate: t.String({ maxLength: 300 }),
+      }),
+    }),
+    idleNoJoinMinutes: Minutes,
+    idleEmptyMinutes: Minutes,
+    maxLifetimeHours: t.Integer({ minimum: 1, maximum: 24 }),
+    worldChangeLabel: t.String({ minLength: 1, maxLength: 80 }),
+    onDemandHourlyPrice: t.Number({ minimum: 0, maximum: 100 }),
+  }),
 );
 
-export const CommandResponse = t.Object({
-  ok: t.Boolean(),
-  output: t.Optional(t.String()),
-  data: t.Optional(t.Any()),
-  error: t.Optional(t.String()),
-});
-
-export const ConfigResponse = configBody;
+// The playtest service's payloads pass through as it sends them.
+export const ServiceResponse = t.Any();

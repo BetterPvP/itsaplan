@@ -28,6 +28,7 @@ import { viewIcon } from '@/utils/viewIcons';
 import { SidebarGroup, SidebarGroupContent, SidebarMenu } from '@/components/ui/sidebar';
 import SidebarNavItem from '@/components/layout/SidebarNavItem';
 import SidebarNavSubmenu from '@/components/layout/SidebarNavSubmenu';
+import PlaytestsNavItem from '@/features/playtest/PlaytestsNavItem';
 
 // The top sidebar group. An entry appears only when its project feature is on and
 // the user may read the section.
@@ -152,6 +153,7 @@ export default function SidebarWorkNav({
               disabled={disabled}
             />
           )}
+          <PlaytestsNavItem projectKey={projectKey} disabled={disabled} />
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
