@@ -2,13 +2,21 @@ import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { usePlaytestCommand } from '../hooks/usePlaytestCommand';
-import { playtestApi, playtestKeys } from '../services/playtestApi';
-import { diffLines } from '../utils/diff';
+import { usePlaytestCommand } from '../../hooks/usePlaytestCommand';
+import { playtestApi, playtestKeys } from '../../services/playtestApi';
+import { diffLines } from '../../utils/diff';
 
 // One config file: edit it, or see how the edit differs from the base. Saving writes
 // the file on the server; most plugins read it on the next restart.
-export default function PlaytestFileEditor({ issueId, path }: { issueId: number; path: string }) {
+export default function PlaytestFileEditor({
+  issueId,
+  path,
+  canEdit,
+}: {
+  issueId: number;
+  path: string;
+  canEdit: boolean;
+}) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<string | null>(null);
   const [showDiff, setShowDiff] = useState(false);
@@ -35,6 +43,11 @@ export default function PlaytestFileEditor({ issueId, path }: { issueId: number;
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 border-b px-2 py-1">
         <span className="truncate font-mono text-[11px]">{path}</span>
+        {file.data.content.includes('‹hidden:') && (
+          <span className="text-[10px] text-muted-foreground">
+            hidden values keep their real value when you save
+          </span>
+        )}
         {file.data.base === null && (
           <span className="text-[10px] text-muted-foreground">not in the base</span>
         )}
@@ -50,7 +63,7 @@ export default function PlaytestFileEditor({ issueId, path }: { issueId: number;
           <Button
             size="sm"
             className="h-6 text-xs"
-            disabled={!dirty || save.isPending}
+            disabled={!canEdit || !dirty || save.isPending}
             onClick={() =>
               save.mutate([content], {
                 onSuccess: () => {
@@ -85,6 +98,7 @@ export default function PlaytestFileEditor({ issueId, path }: { issueId: number;
         <textarea
           value={content}
           onChange={(e) => setDraft(e.target.value)}
+          readOnly={!canEdit}
           spellCheck={false}
           className="flex-1 resize-none bg-transparent p-2 font-mono text-[11px] leading-[1.45] outline-none"
         />

@@ -36,6 +36,7 @@ changes. Each one is a likely rebase conflict when upstream edits the same files
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | branch name template | Settings → Configuration → Branch names: the template Copy branch name and Copy Prompt fill in, with `{user}`, `{key}`, `{title}` and `{cycle}`. |
 | upstream test fix    | Upstream's #561, the fix for a flaky import test. The rebase drops it once a release contains it. |
+| playtest permissions | Team settings → Roles: one resource per playtest action (see, start, restart, end, save as base, review, testers, console, operators, files, log sharing, sensitive values, settings), each with a hint line. |
 
 When the sync reports a conflict in one, rebase by hand onto the tag the notification
 names, fix the feature commit, keep its trailer, and push to `bpvp` with

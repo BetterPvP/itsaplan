@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
 import { cn } from '@/lib/utils';
-import type { FeedEntry } from '../services/playtestApi';
-import { formatTime } from '../utils/labels';
+import type { FeedEntry } from '../../services/playtestApi';
+import { formatTime } from '../../utils/labels';
 
 const SHOWN = 5;
 
