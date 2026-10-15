@@ -26,6 +26,20 @@ and runs in the sync.
   sequence, so one of ours would collide with their next one. Playtest state is stored by
   the playtest service.
 
+## Fork features
+
+A change that has to edit upstream files beyond the mount points is a fork feature: one
+commit with a `Fork-Feature: <name>` trailer. The check allows every file that commit
+changes. Each one is a likely rebase conflict when upstream edits the same files.
+
+| Feature              | What it does                                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| branch name template | Settings → Configuration → Branch names: the template Copy branch name and Copy Prompt fill in, with `{user}`, `{key}`, `{title}` and `{cycle}`. |
+
+When the sync reports a conflict in one, rebase by hand onto the tag the notification
+names, fix the feature commit, keep its trailer, and push to `bpvp` with
+`--force-with-lease`.
+
 ## Sync
 
 `.github/workflows/bpvp-sync.yml` runs daily, on a push to `bpvp`, and by hand.
