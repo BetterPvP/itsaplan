@@ -1,127 +1,72 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
-import type { DevelopmentLink } from '@/lib/api/endpoints/git';
-import { usePersistedOpen } from '@/hooks/usePersistedOpen';
-import { cn } from '@/lib/utils';
-import PlaytestActions from './components/PlaytestActions';
-import PlaytestConsole from './components/PlaytestConsole';
-import PlaytestFeed from './components/PlaytestFeed';
-import PlaytestFiles from './components/PlaytestFiles';
-import PlaytestOps from './components/PlaytestOps';
-import PlaytestTimeline from './components/PlaytestTimeline';
+import Link from 'next/link';
+import { Server } from 'lucide-react';
+import type { IssueDetail } from '@/lib/api/endpoints/issues';
+import type { ProjectDetail } from '@/lib/api/endpoints/projects';
+import { useSession } from '@/lib/auth-client';
+import { Button } from '@/components/ui/button';
+import { buildIssueBranchName } from '@/utils/branchName';
+import { issuePath } from '@/utils/paths';
+import AgentPromptCard from './components/issue/AgentPromptCard';
+import ApprovalStack from './components/ApprovalStack';
 import { usePlaytest } from './hooks/usePlaytest';
-import { PLAYTEST_REPOSITORY, STAGE_LABELS } from './utils/labels';
+import { buildAgentPrompt } from './utils/agentPrompt';
+import { playtestPath } from './utils/paths';
 
-// The issue's playtest: its stages, what it reported, the live server log with a
-// console, operators, config files and the server controls. Shown for an issue with a
-// branch or pull request linked in the playtest repository.
+const REPOSITORY = 'BetterPvP/BetterPvP';
+
+// The top of the issue panel: the prompt for an AI agent and, once the issue has a
+// branch in the playtest repository, its playtest's approvals with a link to the
+// playtest page, where everything else about the server lives.
 export default function PlaytestSection({
-  issueId,
-  links,
-  canEdit,
+  issue,
+  project,
 }: {
-  issueId: number;
-  links: DevelopmentLink[];
-  canEdit: boolean;
+  issue: IssueDetail;
+  project: ProjectDetail;
 }) {
-  const linked = links.some(
-    (l) => l.provider === 'github' && l.repository.toLowerCase() === PLAYTEST_REPOSITORY,
-  );
-  const { open, toggle } = usePersistedOpen('issue-playtest-open');
-  const [tab, setTab] = useState<'console' | 'files'>('console');
-  const { data, log } = usePlaytest(issueId, linked);
-  if (!linked || !data?.configured || !data.eligible) return null;
-  const playtest = data.playtest;
-  const Chevron = open ? ChevronDown : ChevronRight;
-  const connected = !!playtest?.connected && playtest.stage !== 'ended';
+  const { data: session } = useSession();
+  const { data } = usePlaytest(issue.id, false);
+  const ref = project.project.ref;
+  const p = data?.playtest;
+
+  const prompt = () =>
+    buildAgentPrompt({
+      identifier: issue.identifier,
+      title: issue.title,
+      description: issue.description,
+      issueUrl: `${window.location.origin}${issuePath(ref, issue.sequenceNumber)}`,
+      playtestUrl: `${window.location.origin}${playtestPath(ref, issue.identifier)}`,
+      branch: buildIssueBranchName(issue, session?.user, project.branchNameTemplate),
+      repository: REPOSITORY,
+      columns: project.columns,
+      startColumnId: data?.settings?.autoStartColumnId ?? null,
+      worldChangeLabel: data?.settings?.worldChangeLabel ?? 'World change',
+    });
 
   return (
-    <div className="mb-5 border-b pb-4">
-      <div className={cn('flex h-7 items-center justify-between gap-3', open && 'mb-3')}>
-        <button
-          type="button"
-          className="flex items-center gap-1 text-xs font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground"
-          onClick={toggle}
-        >
-          <Chevron className="size-3.5" />
-          Playtest
-          {playtest && (
-            <span className={cn('normal-case', playtest.failed && 'text-red-500')}>
-              · {STAGE_LABELS[playtest.stage]}
-              {playtest.failed ? ' failed' : ''}
+    <div className="mb-5 space-y-3 border-b pb-4">
+      {data?.configured && data.eligible && data.permissions.view && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Playtest
             </span>
-          )}
-        </button>
-        {canEdit && (
-          <div className="flex items-center gap-1.5">
-            {connected && <PlaytestOps issueId={issueId} ops={playtest.ops} />}
-            <PlaytestActions issueId={issueId} playtest={playtest} />
-          </div>
-        )}
-      </div>
-      {open && (
-        <div className="space-y-4">
-          <PlaytestTimeline playtest={playtest} />
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span>
-              Branch{' '}
-              <span className="font-mono text-foreground">{playtest?.branch ?? data.branch}</span>
-              {playtest?.commit && (
-                <span className="font-mono"> @ {playtest.commit.slice(0, 8)}</span>
-              )}
-            </span>
-            {playtest?.address && playtest.stage !== 'ended' && (
-              <span>
-                Server{' '}
-                <span className="font-mono text-foreground select-all">{playtest.address}</span>
-              </span>
-            )}
-            {playtest?.runUrl && (
-              <a
-                href={playtest.runUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 hover:text-foreground"
-              >
-                Workflow run <ExternalLink className="size-3" />
-              </a>
+            {p && (
+              <ApprovalStack
+                reviews={p.reviews}
+                approved={p.approved}
+                required={p.requiredApprovals}
+              />
             )}
           </div>
-          <PlaytestFeed feed={data.feed} />
-          {playtest && (
-            <div className="space-y-2">
-              <div className="flex gap-3 text-xs">
-                {(['console', 'files'] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTab(t)}
-                    className={cn(
-                      'border-b-2 pb-0.5',
-                      tab === t
-                        ? 'border-foreground text-foreground'
-                        : 'border-transparent text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    {t === 'console' ? 'Console' : 'Config files'}
-                  </button>
-                ))}
-              </div>
-              {tab === 'console' && (
-                <PlaytestConsole issueId={issueId} log={log} canRun={canEdit && connected} />
-              )}
-              {tab === 'files' &&
-                (canEdit && connected ? (
-                  <PlaytestFiles issueId={issueId} />
-                ) : (
-                  <div className="text-xs text-muted-foreground">
-                    The config files can be edited while the server is up.
-                  </div>
-                ))}
-            </div>
-          )}
+          <Button asChild size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
+            <Link href={playtestPath(ref, issue.identifier)}>
+              <Server className="size-3.5" /> Open server
+            </Link>
+          </Button>
         </div>
       )}
+      <AgentPromptCard prompt={prompt} />
     </div>
   );
 }

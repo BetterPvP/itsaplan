@@ -4,45 +4,55 @@ import {
   playtestApi,
   playtestKeys,
   type FeedEntry,
+  type IssuePlaytest,
   type LogLine,
-  type Playtest,
+  type Metrics,
   type PlaytestState,
+  type Review,
 } from '../services/playtestApi';
 
-const MAX_LOG_LINES = 5000;
+const MAX_LOG_LINES = 8000;
 
-// An issue's playtest, kept current by the event stream while the section is open.
-export function usePlaytest(issueId: number, enabled: boolean) {
+// An issue's playtest, kept current by the event stream while `live` is on. With
+// `reveal` the log shows sensitive values, for someone allowed to see them.
+export function usePlaytest(issueId: number | null, live: boolean, reveal = false) {
   const qc = useQueryClient();
   const query = useQuery({
-    queryKey: playtestKeys.issue(issueId),
-    queryFn: () => playtestApi.get(issueId),
-    enabled,
+    queryKey: playtestKeys.issue(issueId ?? 0),
+    queryFn: () => playtestApi.get(issueId!),
+    enabled: issueId != null,
   });
   const [log, setLog] = useState<LogLine[]>([]);
   const lastSeq = useRef(0);
-  const live = enabled && !!query.data?.eligible && !!query.data.configured;
+  const streaming = live && issueId != null && !!query.data?.configured && !!query.data.eligible;
 
   useEffect(() => {
-    if (!live) return;
+    if (!streaming || issueId == null) return;
     const abort = new AbortController();
     let retry = 1000;
+    lastSeq.current = 0;
+    setLog([]);
+    const patch = (fn: (old: IssuePlaytest) => IssuePlaytest) =>
+      qc.setQueryData<IssuePlaytest>(playtestKeys.issue(issueId), (old) => (old ? fn(old) : old));
 
     const apply = (event: string, data: unknown) => {
       if (event === 'state') {
-        qc.setQueryData<Playtest>(playtestKeys.issue(issueId), (old) =>
-          old ? { ...old, playtest: data as PlaytestState | null } : old,
-        );
-        // A new server starts a new log.
-        if ((data as PlaytestState | null)?.stage === 'launch') {
+        const state = data as PlaytestState | null;
+        patch((old) => ({ ...old, playtest: state }));
+        if (state?.stage === 'launch') {
           lastSeq.current = 0;
           setLog([]);
         }
       } else if (event === 'feed') {
-        qc.setQueryData<Playtest>(playtestKeys.issue(issueId), (old) =>
-          old && !old.feed.some((f) => f.id === (data as FeedEntry).id)
-            ? { ...old, feed: [...old.feed, data as FeedEntry] }
-            : old,
+        const entry = data as FeedEntry;
+        patch((old) =>
+          old.feed.some((f) => f.id === entry.id) ? old : { ...old, feed: [...old.feed, entry] },
+        );
+      } else if (event === 'approvals') {
+        patch((old) => ({ ...old, approvals: data as Review[] }));
+      } else if (event === 'metrics') {
+        patch((old) =>
+          old.playtest ? { ...old, playtest: { ...old.playtest, metrics: data as Metrics } } : old,
         );
       } else if (event === 'log') {
         const lines = (data as LogLine[]).filter((l) => l.seq > lastSeq.current);
@@ -55,7 +65,7 @@ export function usePlaytest(issueId: number, enabled: boolean) {
     const connect = async () => {
       while (!abort.signal.aborted) {
         try {
-          const res = await playtestApi.events(issueId, lastSeq.current, abort.signal);
+          const res = await playtestApi.events(issueId, lastSeq.current, reveal, abort.signal);
           if (!res.ok || !res.body) throw new Error(String(res.status));
           retry = 1000;
           const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -82,7 +92,7 @@ export function usePlaytest(issueId: number, enabled: boolean) {
     };
     void connect();
     return () => abort.abort();
-  }, [live, issueId, qc]);
+  }, [streaming, issueId, reveal, qc]);
 
   return { ...query, log };
 }

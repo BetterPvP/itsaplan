@@ -107,7 +107,7 @@ export default function IssueDetailContent({
 
   const heading = (
     <>
-      <PlaytestSection issueId={issue.id} links={issue.development ?? []} canEdit={canEdit} />
+      <PlaytestSection issue={issue} project={project} />
       <div className="flex items-start gap-2">
         {issue.archivedAt && (
           <span className="mt-1 shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase">

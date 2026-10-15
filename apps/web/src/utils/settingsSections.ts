@@ -116,8 +116,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     slug: 'playtest',
     icon: FlaskConical,
-    resource: 'repositories',
-    viewAction: 'edit',
+    resource: 'playtest_settings',
     group: 'automation',
   },
   {

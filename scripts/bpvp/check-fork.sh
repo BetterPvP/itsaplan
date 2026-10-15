@@ -13,6 +13,7 @@ mounts=(
   apps/web/src/utils/settingsSections.ts
   apps/api/src/planner.ts
   apps/web/src/ce/messages.ts
+  apps/web/src/components/layout/SidebarWorkNav.tsx
 )
 max_mount_lines=8
 
@@ -20,7 +21,7 @@ max_mount_lines=8
 # "Fork-Feature: <name>" trailer. FORK.md lists them.
 carried=$(git log --format=%H --grep='^Fork-Feature: ' "$base"..HEAD | xargs -r -n1 git show --name-only --format= | sort -u)
 
-ours='^(FORK\.md|scripts/bpvp/|\.github/workflows/bpvp-|apps/web/src/features/playtest/|apps/api/src/modules/playtest/|apps/web/src/app/.*/playtest/)'
+ours='^(FORK\.md|scripts/bpvp/|\.github/workflows/bpvp-|apps/web/src/features/playtest/|apps/api/src/modules/playtest/|apps/web/src/app/.*/playtests?/)'
 
 failed=0
 while IFS=$'\t' read -r added removed path; do
