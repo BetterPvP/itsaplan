@@ -16,6 +16,10 @@ mounts=(
 )
 max_mount_lines=8
 
+# Files changed by a larger fork feature, a commit marked with a
+# "Fork-Feature: <name>" trailer. FORK.md lists them.
+carried=$(git log --format=%H --grep='^Fork-Feature: ' "$base"..HEAD | xargs -r -n1 git show --name-only --format= | sort -u)
+
 ours='^(FORK\.md|scripts/bpvp/|\.github/workflows/bpvp-|apps/web/src/features/playtest/|apps/api/src/modules/playtest/|apps/web/src/app/.*/playtest/)'
 
 failed=0
@@ -23,6 +27,8 @@ while IFS=$'\t' read -r added removed path; do
   if [[ $path =~ ^packages/db/(drizzle|src/schema)/ ]]; then
     echo "::error file=$path::No migrations or schema changes in the fork"
     failed=1
+  elif grep -qxF "$path" <<<"$carried"; then
+    :
   elif [[ " ${mounts[*]} " == *" $path "* ]]; then
     if ((removed > 0 || added > max_mount_lines)); then
       echo "::error file=$path::A mount point adds at most $max_mount_lines lines and removes none (+$added -$removed)"

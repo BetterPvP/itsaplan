@@ -36,7 +36,7 @@ export default function PlaytestSection({
   const connected = !!playtest?.connected && playtest.stage !== 'ended';
 
   return (
-    <div className={`mt-6 border-t pt-5 ${open ? '' : '-mb-2'}`}>
+    <div className="mb-5 border-b pb-4">
       <div className={cn('flex h-7 items-center justify-between gap-3', open && 'mb-3')}>
         <button
           type="button"
