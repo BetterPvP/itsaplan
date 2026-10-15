@@ -16,10 +16,9 @@ mounts=(
 )
 max_mount_lines=8
 
-# Files changed by commits waiting to be merged upstream, marked with an
-# "Upstream-PR: croffasia/itsaplan#<n>" trailer. The rebase drops such a commit
-# once the release that contains it is the base.
-carried=$(git log --format=%H --grep='^Upstream-PR: ' "$base"..HEAD | xargs -r -n1 git show --name-only --format= | sort -u)
+# Files changed by a larger fork feature, a commit marked with a
+# "Fork-Feature: <name>" trailer. FORK.md lists them.
+carried=$(git log --format=%H --grep='^Fork-Feature: ' "$base"..HEAD | xargs -r -n1 git show --name-only --format= | sort -u)
 
 ours='^(FORK\.md|scripts/bpvp/|\.github/workflows/bpvp-|apps/web/src/features/playtest/|apps/api/src/modules/playtest/|apps/web/src/app/.*/playtest/)'
 
