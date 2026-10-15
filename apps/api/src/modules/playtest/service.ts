@@ -12,13 +12,17 @@ const repository = () => (process.env.PLAYTEST_REPOSITORY ?? 'BetterPvP/BetterPv
 
 export const playtestsConfigured = () => serviceUrl() !== '' && serviceToken() !== '';
 
-// The branch a playtest of the issue builds: the newest open pull request or branch
-// linked to it in the playtest repository, else the newest linked one at all.
+// The branch a playtest of the issue builds, from its links in the playtest repository
+// (newest first): the newest open pull request or branch, else the branch the newest
+// merged pull request went into, since GitHub usually deletes a merged source branch.
+// Null when the issue has neither.
 export function playtestBranch(links: DevelopmentLink[]): string | null {
   const linked = links.filter(
-    (l) => l.provider === 'github' && l.repository.toLowerCase() === repository() && l.sourceBranch,
+    (l) => l.provider === 'github' && l.repository.toLowerCase() === repository(),
   );
-  return (linked.find((l) => l.state === 'open') ?? linked[0])?.sourceBranch ?? null;
+  const open = linked.find((l) => l.state === 'open' && l.sourceBranch);
+  if (open) return open.sourceBranch;
+  return linked.find((l) => l.state === 'merged')?.targetBranch ?? null;
 }
 
 export async function issueTarget(issueId: number) {
