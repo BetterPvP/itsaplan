@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "العناصر النائبة: '{user}' اسم المستخدم، '{key}' مفتاح المهمة، '{title}' العنوان، '{cycle}' دورة المهمة. يُحذف العنصر النائب الذي لا قيمة له مع الفاصل الذي يليه.",
     "branchNamePreview": "مثال:",
     "branchNameSampleTitle": "إصلاح المخيمات الفارغة",
-    "branchNameSampleCycle": "المخيمات"
+    "branchNameSampleCycle": "الأسبوع 2"
   },
   "states": {
     "addState": "إضافة حالة {type}",

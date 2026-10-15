@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "Підстановки: '{user}' ваше ім''я користувача, '{key}' ключ задачі, '{title}' заголовок, '{cycle}' цикл задачі. Підстановка без значення прибирається разом із роздільником.",
     "branchNamePreview": "Приклад:",
     "branchNameSampleTitle": "Виправити порожні табори",
-    "branchNameSampleCycle": "Табори"
+    "branchNameSampleCycle": "Тиждень 2"
   },
   "states": {
     "addState": "Додати статус групи «{type}»",

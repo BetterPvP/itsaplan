@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "Placeholders: '{user}' your username, '{key}' the issue key, '{title}' the title, '{cycle}' the issue's cycle. A placeholder without a value is left out with its separator.",
     "branchNamePreview": "Example:",
     "branchNameSampleTitle": "Fix empty camps",
-    "branchNameSampleCycle": "Camps"
+    "branchNameSampleCycle": "Week 2"
   },
   "states": {
     "addState": "Add {type} state",

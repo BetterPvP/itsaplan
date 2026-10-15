@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "占位符：'{user}' 你的用户名，'{key}' 议题键，'{title}' 标题，'{cycle}' 议题所在周期。没有值的占位符会连同分隔符一起省略。",
     "branchNamePreview": "示例：",
     "branchNameSampleTitle": "修复空营地",
-    "branchNameSampleCycle": "营地"
+    "branchNameSampleCycle": "第 2 周"
   },
   "states": {
     "addState": "添加{type}状态",

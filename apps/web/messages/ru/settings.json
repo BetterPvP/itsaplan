@@ -168,7 +168,7 @@
     "branchNamePlaceholders": "Подстановки: '{user}' ваше имя пользователя, '{key}' ключ задачи, '{title}' заголовок, '{cycle}' цикл задачи. Подстановка без значения убирается вместе с разделителем.",
     "branchNamePreview": "Пример:",
     "branchNameSampleTitle": "Исправить пустые лагеря",
-    "branchNameSampleCycle": "Лагеря"
+    "branchNameSampleCycle": "Неделя 2"
   },
   "states": {
     "addState": "Добавить статус группы «{type}»",
