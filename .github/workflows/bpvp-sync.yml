@@ -1,0 +1,264 @@
+name: BetterPvP sync
+
+# Rebases the fork onto upstream's latest release, checks it, builds the images and
+# deploys them to plan.brauw.dev. See FORK.md.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  push:
+    branches: [bpvp]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild and redeploy when the images already exist
+        type: boolean
+        default: false
+
+concurrency:
+  group: bpvp-sync
+  cancel-in-progress: false
+
+env:
+  BUN_VERSION: 1.4.3
+  IMAGE: ghcr.io/betterpvp/itsaplan
+  NTFY_URL: https://ntfy.brauw.dev/playtest
+  SITE: https://plan.brauw.dev
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Rebase onto the latest release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      sha: ${{ steps.pick.outputs.sha }}
+      candidate: ${{ steps.rebase.outputs.candidate }}
+      tag: ${{ steps.pick.outputs.tag }}
+      build: ${{ steps.pick.outputs.build }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: bpvp
+          fetch-depth: 0
+          ssh-key: ${{ secrets.SYNC_DEPLOY_KEY }}
+
+      - name: Rebase
+        id: rebase
+        if: github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git remote add upstream https://github.com/croffasia/itsaplan.git
+          git fetch upstream --tags --force --quiet
+          latest=$(gh release view -R croffasia/itsaplan --json tagName -q .tagName)
+          base=$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD)
+          echo "latest=$latest base=$base"
+          if [ "$latest" = "$base" ]; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if ! git rebase --onto "$latest" "$base" HEAD; then
+            git diff --name-only --diff-filter=U | sed 's/^/conflict: /'
+            echo "::error::Rebasing onto $latest conflicts"
+            exit 1
+          fi
+          git push --force origin HEAD:refs/heads/bpvp-candidate
+          echo candidate=true >> "$GITHUB_OUTPUT"
+
+      - name: Pick the commit
+        id: pick
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          if [ "$FORCE" != true ] && docker manifest inspect "$IMAGE-web:sha-$sha" > /dev/null 2>&1; then
+            echo "Images for $sha exist, nothing to do"
+            echo build=false >> "$GITHUB_OUTPUT"
+          else
+            echo build=true >> "$GITHUB_OUTPUT"
+          fi
+
+  quality:
+    name: Format, lint, typecheck, fork rules
+    needs: prepare
+    if: needs.prepare.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Fetch upstream tags
+        run: git fetch https://github.com/croffasia/itsaplan.git --tags --force --quiet
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/bpvp/check-fork.sh
+      - run: bun run format:check
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun audit --audit-level=high --ignore=GHSA-vfj7-8cjw-p6xm
+      - run: bun test scripts/
+      - run: bun run build
+
+  test:
+    name: Test suite
+    needs: prepare
+    if: needs.prepare.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - run: docker compose -f docker-compose.test.yml build
+      - run: docker compose -f docker-compose.test.yml run --rm api-test
+      - if: always()
+        run: docker compose -f docker-compose.test.yml down -v
+
+  images:
+    name: ${{ matrix.service }} image
+    needs: [prepare, quality, test]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service: [api, worker, web]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/${{ matrix.service }}/Dockerfile
+          platforms: linux/amd64
+          cache-from: type=gha,scope=bpvp-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=bpvp-${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.IMAGE }}-${{ matrix.service }}:sha-${{ needs.prepare.outputs.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.prepare.outputs.sha }}
+            org.opencontainers.image.version=${{ needs.prepare.outputs.tag }}
+
+  deploy:
+    name: Deploy
+    needs: [prepare, images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      SHA: ${{ needs.prepare.outputs.sha }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      WEBHOOK: ${{ secrets.DOKPLOY_WEBHOOK }}
+    steps:
+      - uses: actions/checkout@v7
+        if: needs.prepare.outputs.candidate == 'true'
+        with:
+          ref: bpvp
+          fetch-depth: 0
+          ssh-key: ${{ secrets.SYNC_DEPLOY_KEY }}
+
+      # The push this makes starts another run, which finds the images and stops.
+      - name: Move bpvp to the candidate
+        if: needs.prepare.outputs.candidate == 'true'
+        run: |
+          set -euo pipefail
+          git fetch origin bpvp-candidate
+          git push --force-with-lease=bpvp origin "$SHA:refs/heads/bpvp"
+          git push origin --delete bpvp-candidate
+
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Point stable at the new images
+        if: env.WEBHOOK != ''
+        run: |
+          set -euo pipefail
+          for s in api worker web; do
+            prev=$(docker buildx imagetools inspect "$IMAGE-$s:stable" --format '{{json .Manifest}}' 2>/dev/null | jq -r '.digest // empty' || true)
+            echo "$s=$prev" >> previous.env
+            docker buildx imagetools create -t "$IMAGE-$s:stable" "$IMAGE-$s:sha-$SHA"
+          done
+          cat previous.env
+
+      - name: Redeploy and wait for the new version
+        if: env.WEBHOOK != ''
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST "$WEBHOOK" -o /dev/null
+          want=${TAG#v}
+          for _ in $(seq 1 60); do
+            sleep 10
+            version=$(curl -fsS "$SITE/api/docs/json" | jq -r .info.version || true)
+            web=$(curl -s -o /dev/null -w '%{http_code}' "$SITE/login" || true)
+            echo "version=$version web=$web"
+            if [ "$version" = "$want" ] && [ "$web" = 200 ]; then exit 0; fi
+          done
+          echo "::error::plan.brauw.dev did not report $want with a working web app"
+          exit 1
+
+      - name: Production is not on the fork yet
+        if: env.WEBHOOK == ''
+        run: echo "::notice::DOKPLOY_WEBHOOK is not set, so stable stays where it is"
+
+      - name: Roll back stable
+        if: failure()
+        run: |
+          set -euo pipefail
+          [ -f previous.env ] || exit 0
+          while IFS='=' read -r s digest; do
+            if [ -n "$digest" ]; then
+              docker buildx imagetools create -t "$IMAGE-$s:stable" "$IMAGE-$s@$digest"
+            fi
+          done < previous.env
+          curl -fsS -X POST "$WEBHOOK" -o /dev/null
+
+  notify:
+    name: Notify on failure
+    needs: [prepare, quality, test, images, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -fsS -o /dev/null -H "Authorization: Bearer $NTFY_TOKEN" \
+            -H 'Title: Itsaplan sync failed' -H 'Tags: warning' -H "Click: $RUN" \
+            -d "The fork sync failed${TAG:+ at $TAG}. plan.brauw.dev keeps the last good images." \
+            "$NTFY_URL"
