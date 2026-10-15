@@ -71,35 +71,31 @@ export default function PlaytestPage() {
         </p>
       )}
       {p && <MetricsStrip playtest={p} />}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="min-w-0">
-          {p ? (
-            <PlaytestTabs
-              issueId={issueId.data}
-              data={data}
-              log={log}
-              reveal={reveal}
-              onReveal={setReveal}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">No playtest has run for this issue yet.</p>
-          )}
-        </div>
-        <aside className="space-y-6">
-          <ReviewsPanel
-            reviews={data.approvals}
-            commit={p?.commit ?? null}
-            approved={p?.approved ?? 0}
-            required={p?.requiredApprovals ?? data.settings?.requiredApprovals ?? 0}
-          />
-          <section className="space-y-3">
-            <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Timeline
-            </h3>
-            <PlaytestTimeline playtest={p} />
-            <PlaytestFeed feed={data.feed} />
-          </section>
-        </aside>
+      {p ? (
+        <PlaytestTabs
+          issueId={issueId.data}
+          data={data}
+          log={log}
+          reveal={reveal}
+          onReveal={setReveal}
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground">No playtest has run for this issue yet.</p>
+      )}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <section className="min-w-0 space-y-3">
+          <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Timeline
+          </h3>
+          <PlaytestTimeline playtest={p} />
+          <PlaytestFeed feed={data.feed} />
+        </section>
+        <ReviewsPanel
+          reviews={data.approvals}
+          commit={p?.commit ?? null}
+          approved={p?.approved ?? 0}
+          required={p?.requiredApprovals ?? data.settings?.requiredApprovals ?? 0}
+        />
       </div>
     </div>
   );

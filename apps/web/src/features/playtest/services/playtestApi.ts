@@ -139,6 +139,8 @@ export const playtestApi = {
     post<CommandResult>(`${base(issueId)}/ops`, { player, op }),
   review: (issueId: number, verdict: Verdict) =>
     post<{ approvals: Review[] }>(`${base(issueId)}/approvals`, { verdict }),
+  unreview: (issueId: number) =>
+    request<{ approvals: Review[] }>(`${base(issueId)}/approvals`, { method: 'DELETE' }),
   testers: (issueId: number) => post<{ ok: boolean }>(`${base(issueId)}/testers`),
   share: (issueId: number, kind: 'console' | 'startup') =>
     post<{ url: string }>(`${base(issueId)}/share`, { kind }),
