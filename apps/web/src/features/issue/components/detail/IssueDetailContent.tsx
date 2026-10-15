@@ -24,6 +24,7 @@ import MarkdownEditor from '@/components/common/editor/MarkdownEditor';
 import IssueCustomFieldBody from '../fields/IssueCustomFieldBody';
 import IssueProperties from './IssueProperties';
 import IssueActionsBar from '../actions/IssueActionsBar';
+import PlaytestSection from '@/features/playtest/PlaytestSection';
 import {
   PROPERTIES_MAX_W,
   PROPERTIES_MIN_W,
@@ -198,6 +199,8 @@ export default function IssueDetailContent({
         canEdit={canEdit}
         canManage={canManageDevelopment}
       />
+
+      <PlaytestSection issueId={issue.id} links={issue.development ?? []} canEdit={canEdit} />
 
       {features.documents && (
         <IssueDocumentsPanel

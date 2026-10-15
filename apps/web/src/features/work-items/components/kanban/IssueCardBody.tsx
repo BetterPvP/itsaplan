@@ -27,6 +27,7 @@ import { StateIcon } from '@/features/issue/components/shared/IssueIcons';
 import { IssueIdentifier } from '../shared/IssueIdentifier';
 import { IssueCardLinks } from './IssueCardLinks';
 import { IssueCardSubtasks } from './IssueCardSubtasks';
+import PlaytestCardBadge from '@/features/playtest/PlaytestCardBadge';
 
 // One board card's content. Which properties render is driven by `properties`.
 // onOpen opens an issue the card links to; the drag preview passes none.
@@ -69,6 +70,7 @@ export function IssueCardBody({
 
   return (
     <>
+      <PlaytestCardBadge identifier={issue.identifier} />
       {(has('id') || (has('priority') && issue.priority)) && (
         <div
           className={cn('mb-1.5 flex items-center', has('id') ? 'justify-between' : 'justify-end')}

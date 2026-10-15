@@ -5,14 +5,16 @@ set -euo pipefail
 
 base=$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD)
 
-# Upstream files we change, each with one import and one element or entry.
+# Upstream files we change, each with one import and one element or entry. Prettier
+# spreads an entry over several lines, hence the line allowance.
 mounts=(
   apps/web/src/features/issue/components/detail/IssueDetailContent.tsx
   apps/web/src/features/work-items/components/kanban/IssueCardBody.tsx
   apps/web/src/utils/settingsSections.ts
   apps/api/src/planner.ts
+  apps/web/messages/en/sections.json
 )
-max_mount_lines=4
+max_mount_lines=8
 
 ours='^(FORK\.md|scripts/bpvp/|\.github/workflows/bpvp-|apps/web/src/features/playtest/|apps/api/src/modules/playtest/|apps/web/src/app/.*/playtest/)'
 

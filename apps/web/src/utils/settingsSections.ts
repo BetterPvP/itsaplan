@@ -3,6 +3,7 @@ import {
   Clock3,
   Columns3,
   FileText,
+  FlaskConical,
   GitPullRequest,
   Import,
   Info,
@@ -102,6 +103,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     slug: 'git',
     icon: GitPullRequest,
+    resource: 'repositories',
+    viewAction: 'edit',
+    group: 'automation',
+  },
+  {
+    slug: 'playtest',
+    icon: FlaskConical,
     resource: 'repositories',
     viewAction: 'edit',
     group: 'automation',
