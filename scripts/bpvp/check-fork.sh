@@ -12,7 +12,7 @@ mounts=(
   apps/web/src/features/work-items/components/kanban/IssueCardBody.tsx
   apps/web/src/utils/settingsSections.ts
   apps/api/src/planner.ts
-  apps/web/messages/en/sections.json
+  apps/web/src/ce/messages.ts
 )
 max_mount_lines=8
 
