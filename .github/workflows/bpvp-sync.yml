@@ -13,6 +13,10 @@ on:
         description: Rebuild and redeploy when the images already exist
         type: boolean
         default: false
+      skip_tests:
+        description: Deploy without upstream's test suite
+        type: boolean
+        default: false
 
 concurrency:
   group: bpvp-sync
@@ -81,7 +85,7 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          digest() { docker buildx imagetools inspect "$1" --format '{{json .Manifest}}' 2>/dev/null | jq -r '.digest // empty'; }
+          digest() { docker buildx imagetools inspect "$1" --format '{{json .Manifest}}' 2>/dev/null | jq -r '.digest // empty' || true; }
           built=$(digest "$IMAGE-web:sha-$sha")
           if [ "$FORCE" != true ] && [ -n "$built" ] && [ "$built" = "$(digest "$IMAGE-web:stable")" ]; then
             echo "$sha is already deployed, nothing to do"
@@ -147,7 +151,9 @@ jobs:
   test:
     name: Test suite
     needs: prepare
-    if: needs.prepare.outputs.build == 'true' && needs.prepare.outputs.tested != 'true'
+    if: >-
+      needs.prepare.outputs.build == 'true' && needs.prepare.outputs.tested != 'true' &&
+      inputs.skip_tests != true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
