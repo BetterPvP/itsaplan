@@ -162,7 +162,13 @@
     "completedIssues": "تسک‌های تکمیل‌شده",
     "canceledIssues": "تسک‌های لغوشده",
     "staleHint": "پس از این تعداد روز بدون فعالیت، بایگانی شود.",
-    "days": "روز"
+    "days": "روز",
+    "branchName": "Branch names",
+    "branchNameHint": "The branch name Copy branch name and Copy prompt suggest for an issue.",
+    "branchNamePlaceholders": "Placeholders: '{user}' your username, '{key}' the issue key, '{title}' the title, '{cycle}' the issue's cycle. A placeholder without a value is left out with its separator.",
+    "branchNamePreview": "Example:",
+    "branchNameSampleTitle": "Fix empty camps",
+    "branchNameSampleCycle": "Week 2"
   },
   "states": {
     "addState": "افزودن وضعیت {type}",

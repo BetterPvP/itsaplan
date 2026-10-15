@@ -162,7 +162,13 @@
     "completedIssues": "已完成的工作項目",
     "canceledIssues": "已取消的工作項目",
     "staleHint": "超過此天數無活動",
-    "days": "天"
+    "days": "天",
+    "branchName": "Branch names",
+    "branchNameHint": "The branch name Copy branch name and Copy prompt suggest for an issue.",
+    "branchNamePlaceholders": "Placeholders: '{user}' your username, '{key}' the issue key, '{title}' the title, '{cycle}' the issue's cycle. A placeholder without a value is left out with its separator.",
+    "branchNamePreview": "Example:",
+    "branchNameSampleTitle": "Fix empty camps",
+    "branchNameSampleCycle": "Week 2"
   },
   "states": {
     "addState": "新增{type}狀態",
