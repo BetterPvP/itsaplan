@@ -102,6 +102,10 @@
       "label": "Webhooks",
       "description": "Send project events to external URLs, signed with a per-webhook secret."
     },
+    "playtest": {
+      "label": "Playtest",
+      "description": "Start playtests from the board and choose who is op and which config files can be edited."
+    },
     "git": {
       "label": "Repositories",
       "description": "Close issues when their pull requests merge on GitHub, GitLab, Gitea, Forgejo, or Bitbucket."
