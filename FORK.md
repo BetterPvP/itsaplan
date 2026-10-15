@@ -48,9 +48,11 @@ names, fix the feature commit, keep its trailer, and push to `bpvp` with
 1. When upstream has a newer release tag, it rebases `bpvp` onto it and pushes the result to
    `bpvp-candidate`.
 2. It runs upstream's checks (format, lint, typecheck, audit, script tests, build, the
-   compose test gate) and ours.
-3. It builds the api, worker and web images for amd64 and pushes them to
-   `ghcr.io/betterpvp/itsaplan-<service>:sha-<commit>`.
+   compose test gate) and ours. A merged pull request skips the test gate when its CI
+   passed against the same `bpvp` it was merged onto.
+3. Alongside the checks, it builds the api, worker and web images for amd64 and pushes them
+   to `ghcr.io/betterpvp/itsaplan-<service>:sha-<commit>`. Nothing deploys until the checks
+   pass.
 4. It moves `bpvp` to the candidate, points the `stable` tag at the new images, and calls the
    Dokploy webhook. Production pulls `stable`.
 5. It waits for plan.brauw.dev to report the new version. When it does not, `stable` goes

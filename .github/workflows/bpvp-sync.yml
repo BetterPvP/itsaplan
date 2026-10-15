@@ -39,6 +39,7 @@ jobs:
       candidate: ${{ steps.rebase.outputs.candidate }}
       tag: ${{ steps.pick.outputs.tag }}
       build: ${{ steps.pick.outputs.build }}
+      tested: ${{ steps.tested.outputs.tested }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -80,12 +81,35 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          if [ "$FORCE" != true ] && docker manifest inspect "$IMAGE-web:sha-$sha" > /dev/null 2>&1; then
-            echo "Images for $sha exist, nothing to do"
+          digest() { docker buildx imagetools inspect "$1" --format '{{json .Manifest}}' 2>/dev/null | jq -r '.digest // empty'; }
+          built=$(digest "$IMAGE-web:sha-$sha")
+          if [ "$FORCE" != true ] && [ -n "$built" ] && [ "$built" = "$(digest "$IMAGE-web:stable")" ]; then
+            echo "$sha is already deployed, nothing to do"
             echo build=false >> "$GITHUB_OUTPUT"
           else
             echo build=true >> "$GITHUB_OUTPUT"
           fi
+
+      # A merged pull request was already put through the test suite by CI. The merge
+      # skips it when that CI run passed against the same base the merge went onto.
+      - name: Check the pull request's CI
+        id: tested
+        if: github.event_name == 'push' && steps.pick.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.pick.outputs.sha }}
+        run: |
+          set -euo pipefail
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" -q '.[0] // empty | "\(.head.sha) \(.base.sha)"')
+          [ -n "$pr" ] || { echo "No pull request for $SHA"; exit 0; }
+          read -r head base <<<"$pr"
+          if [ "$base" != "$(git rev-parse "$SHA^1")" ]; then
+            echo "bpvp moved after the pull request's last CI run"
+            exit 0
+          fi
+          ci=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$head&event=pull_request" -q '.workflow_runs[0].conclusion // empty')
+          echo "CI on $head: ${ci:-none}"
+          [ "$ci" = success ] && echo tested=true >> "$GITHUB_OUTPUT" || true
 
   quality:
     name: Format, lint, typecheck, fork rules
@@ -123,7 +147,7 @@ jobs:
   test:
     name: Test suite
     needs: prepare
-    if: needs.prepare.outputs.build == 'true'
+    if: needs.prepare.outputs.build == 'true' && needs.prepare.outputs.tested != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -134,9 +158,11 @@ jobs:
       - if: always()
         run: docker compose -f docker-compose.test.yml down -v
 
+  # Built alongside the checks. Deploy waits for both.
   images:
     name: ${{ matrix.service }} image
-    needs: [prepare, quality, test]
+    needs: prepare
+    if: needs.prepare.outputs.build == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -171,7 +197,11 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: [prepare, images]
+    needs: [prepare, quality, test, images]
+    if: >-
+      always() && needs.prepare.outputs.build == 'true' &&
+      needs.quality.result == 'success' && needs.images.result == 'success' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read
