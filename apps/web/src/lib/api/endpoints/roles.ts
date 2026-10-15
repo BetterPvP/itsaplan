@@ -30,7 +30,17 @@ export type PermissionResource =
   | 'repositories'
   | 'note_boards'
   | 'danger_zone'
-  | 'import_export';
+  | 'import_export'
+  | 'playtests'
+  | 'playtest_base'
+  | 'playtest_reviews'
+  | 'playtest_testers'
+  | 'playtest_console'
+  | 'playtest_players'
+  | 'playtest_files'
+  | 'playtest_logs'
+  | 'playtest_sensitive'
+  | 'playtest_settings';
 
 export type ResourcePermissions = Record<PermissionAction, boolean>;
 

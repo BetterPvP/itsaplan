@@ -26,7 +26,17 @@
     "repositories": "Репозиторії",
     "note_boards": "Дошки нотаток",
     "import_export": "Імпорт/Експорт",
-    "danger_zone": "Небезпечна зона"
+    "danger_zone": "Небезпечна зона",
+    "playtests": "Playtests",
+    "playtest_base": "Playtest base server",
+    "playtest_reviews": "Playtest reviews",
+    "playtest_testers": "Playtest tester requests",
+    "playtest_console": "Playtest console",
+    "playtest_players": "Playtest operators",
+    "playtest_files": "Playtest config files",
+    "playtest_logs": "Playtest log sharing",
+    "playtest_sensitive": "Playtest sensitive info",
+    "playtest_settings": "Playtest settings"
   },
   "actions": {
     "create": "Створення",
@@ -43,11 +53,24 @@
     "configuration": "Налаштування",
     "members": "Учасники",
     "project": "Проєкт",
-    "other": "Інше"
+    "other": "Інше",
+    "playtests": "Playtests"
   },
   "resourceColumn": "Ресурс",
   "allowed": "дозволено",
   "notAllowed": "не дозволено",
   "accessHeading": "Доступ до цього проєкту",
-  "joined": "приєднався {date}"
+  "joined": "приєднався {date}",
+  "hints": {
+    "playtests": "View: see playtests. Create: start one, also by moving an issue to the start column. Edit: restart, redeploy, start again. Delete: end the server.",
+    "playtest_base": "Edit: save a playtest server as the base every playtest starts from.",
+    "playtest_reviews": "Create: approve a build or request changes.",
+    "playtest_testers": "Create: ask for testers on Discord.",
+    "playtest_console": "View: read the server log. Create: send console commands.",
+    "playtest_players": "Edit: op and deop players.",
+    "playtest_files": "View: open config files. Edit: change and save them.",
+    "playtest_logs": "Create: share the console or startup log as a link.",
+    "playtest_sensitive": "View: show IP addresses, emails and secrets in the console.",
+    "playtest_settings": "View and edit the project's playtest settings."
+  }
 }

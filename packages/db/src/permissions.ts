@@ -29,6 +29,16 @@ export const PERMISSION_RESOURCES = [
   'note_boards',
   'import_export',
   'danger_zone',
+  'playtests',
+  'playtest_base',
+  'playtest_reviews',
+  'playtest_testers',
+  'playtest_console',
+  'playtest_players',
+  'playtest_files',
+  'playtest_logs',
+  'playtest_sensitive',
+  'playtest_settings',
 ] as const;
 export type PermissionResource = (typeof PERMISSION_RESOURCES)[number];
 
@@ -50,6 +60,17 @@ const RESOURCE_ACTIONS: Partial<Record<PermissionResource, readonly PermissionAc
   repositories: ['edit'],
   agent_usage: ['read'],
   members_invite: ['read', 'create', 'delete'],
+  // Playtests are split so each step can be granted on its own: see (read), start
+  // (create), restart, redeploy or start again (edit), end (delete).
+  playtest_base: ['edit'],
+  playtest_reviews: ['create'],
+  playtest_testers: ['create'],
+  playtest_console: ['read', 'create'],
+  playtest_players: ['edit'],
+  playtest_files: ['read', 'edit'],
+  playtest_logs: ['create'],
+  playtest_sensitive: ['read'],
+  playtest_settings: ['read', 'edit'],
 };
 
 export function resourceActions(resource: PermissionResource): readonly PermissionAction[] {
@@ -96,6 +117,8 @@ export function defaultMemberPermissions(): Permissions {
   p.issue_templates.read = true;
   p.members_manage.read = true;
   p.members_invite.read = true;
+  p.playtests.read = true;
+  p.playtest_console.read = true;
   return p;
 }
 
