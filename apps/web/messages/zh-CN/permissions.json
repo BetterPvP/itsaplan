@@ -26,7 +26,17 @@
     "repositories": "代码仓库",
     "note_boards": "便签板",
     "import_export": "导入/导出",
-    "danger_zone": "危险操作"
+    "danger_zone": "危险操作",
+    "playtests": "Playtests",
+    "playtest_base": "Playtest base server",
+    "playtest_reviews": "Playtest reviews",
+    "playtest_testers": "Playtest tester requests",
+    "playtest_console": "Playtest console",
+    "playtest_players": "Playtest operators",
+    "playtest_files": "Playtest config files",
+    "playtest_logs": "Playtest log sharing",
+    "playtest_sensitive": "Playtest sensitive info",
+    "playtest_settings": "Playtest settings"
   },
   "actions": {
     "create": "新建",
@@ -43,11 +53,24 @@
     "configuration": "配置",
     "members": "成员",
     "project": "项目",
-    "other": "其他"
+    "other": "其他",
+    "playtests": "Playtests"
   },
   "resourceColumn": "资源",
   "allowed": "允许",
   "notAllowed": "不允许",
   "accessHeading": "对此项目的访问权限",
-  "joined": "加入于 {date}"
+  "joined": "加入于 {date}",
+  "hints": {
+    "playtests": "View: see playtests. Create: start one, also by moving an issue to the start column. Edit: restart, redeploy, start again. Delete: end the server.",
+    "playtest_base": "Edit: save a playtest server as the base every playtest starts from.",
+    "playtest_reviews": "Create: approve a build or request changes.",
+    "playtest_testers": "Create: ask for testers on Discord.",
+    "playtest_console": "View: read the server log. Create: send console commands.",
+    "playtest_players": "Edit: op and deop players.",
+    "playtest_files": "View: open config files. Edit: change and save them.",
+    "playtest_logs": "Create: share the console or startup log as a link.",
+    "playtest_sensitive": "View: show IP addresses, emails and secrets in the console.",
+    "playtest_settings": "View and edit the project's playtest settings."
+  }
 }
