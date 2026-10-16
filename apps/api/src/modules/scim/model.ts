@@ -17,7 +17,9 @@ export const listQuery = t.Object({
   filter: t.Optional(t.String()),
   // SCIM paging is 1-based, unlike the offset/limit used elsewhere in this API.
   startIndex: t.Optional(t.Numeric({ minimum: 1 })),
-  count: t.Optional(t.Numeric({ minimum: 0, maximum: 200 })),
+  // Larger requests are capped in the handler, as RFC 7644 lets a provider do, rather
+  // than refused: Pocket ID asks for 1000.
+  count: t.Optional(t.Numeric({ minimum: 0 })),
 });
 
 const meta = t.Object({
