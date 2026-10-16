@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { usePlaytestCommand } from '../../hooks/usePlaytestCommand';
-import { playtestApi, type LogLine } from '../../services/playtestApi';
+import { playtestApi, type LogLine, type PlaytestRef } from '../../services/playtestApi';
 import { formatDuration } from '../../utils/format';
 
 const tone = (l: LogLine) =>
@@ -24,13 +24,13 @@ const tone = (l: LogLine) =>
 // and their answers sit where they were sent. Commands sent before the server is
 // ready wait and run once it is.
 export default function PlaytestConsole({
-  issueId,
+  target,
   log,
   canRun,
   canShare,
   rconReady,
 }: {
-  issueId: number;
+  target: PlaytestRef;
   log: LogLine[];
   canRun: boolean;
   canShare: boolean;
@@ -40,9 +40,9 @@ export default function PlaytestConsole({
   const follow = useRef(true);
   const [command, setCommand] = useState('');
   const [setupOpen, setSetupOpen] = useState(false);
-  const run = usePlaytestCommand((c: string) => playtestApi.console(issueId, c));
+  const run = usePlaytestCommand((c: string) => playtestApi.console(target, c));
   const share = usePlaytestCommand(async () => {
-    const { url } = await playtestApi.share(issueId, 'console');
+    const { url } = await playtestApi.share(target, 'console');
     await navigator.clipboard.writeText(url).catch(() => {});
     toast.success('Log shared, link copied', { description: url });
     return { ok: true };
