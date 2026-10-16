@@ -1,21 +1,30 @@
-import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Server } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox';
 import { usePlaytestCommand } from '../../hooks/usePlaytestCommand';
 import { playtestApi, playtestKeys } from '../../services/playtestApi';
 
-// Starts the staging server on a branch, the last one it ran by default.
+const STORED = 'playtest-staging-branch';
+
+const stored = () => {
+  try {
+    return window.localStorage.getItem(STORED);
+  } catch {
+    return null;
+  }
+};
+
+// Starts the staging server on a branch of the playtest repository. It offers the branch
+// this browser last started, else the one the server last ran, else the default branch.
 export default function StartStagingButton({
   projectKey,
   lastBranch,
@@ -24,60 +33,70 @@ export default function StartStagingButton({
   lastBranch?: string | null;
 }) {
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [branch, setBranch] = useState(lastBranch ?? 'master');
+  const branches = useQuery({
+    queryKey: playtestKeys.branches(projectKey),
+    queryFn: () => playtestApi.stagingBranches(projectKey),
+    staleTime: 60_000,
+  });
+  const [branch, setBranch] = useState<string | null>(null);
+  useEffect(() => {
+    const list = branches.data?.branches;
+    if (branch || !list) return;
+    const pick = [stored(), lastBranch, branches.data?.defaultBranch, list[0]].find(
+      (b) => b && list.includes(b),
+    );
+    if (pick) setBranch(pick);
+  }, [branch, branches.data, lastBranch]);
+
   const start = usePlaytestCommand(
     (b: string) => playtestApi.startStaging(projectKey, b),
     'Starting the staging server',
   );
-  const submit = () =>
-    start.mutate([branch.trim()], {
-      onSuccess: () => {
-        setOpen(false);
-        void qc.invalidateQueries({ queryKey: playtestKeys.issue(projectKey) });
-      },
+  const submit = () => {
+    if (!branch) return;
+    try {
+      window.localStorage.setItem(STORED, branch);
+    } catch {
+      // Storage unavailable.
+    }
+    start.mutate([branch], {
+      onSuccess: () => void qc.invalidateQueries({ queryKey: playtestKeys.issue(projectKey) }),
     });
+  };
 
   return (
-    <>
-      <Button size="sm" className="h-8 gap-1.5" onClick={() => setOpen(true)}>
+    <div className="flex items-center gap-1.5">
+      <Combobox
+        items={branches.data?.branches ?? []}
+        value={branch}
+        onValueChange={(b: string | null) => b && setBranch(b)}
+        disabled={!branches.data}
+      >
+        {/* Selected on focus, so typing searches instead of appending. */}
+        <ComboboxInput
+          placeholder={branches.isError ? 'No branches' : 'Branch'}
+          className="h-8 w-56 font-mono text-xs"
+          onFocus={(e) => e.currentTarget.select()}
+        />
+        <ComboboxContent>
+          <ComboboxEmpty>No matching branch</ComboboxEmpty>
+          <ComboboxList>
+            {(b: string) => (
+              <ComboboxItem key={b} value={b} className="font-mono text-xs">
+                {b}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      <Button
+        size="sm"
+        className="h-8 gap-1.5"
+        disabled={!branch || start.isPending}
+        onClick={submit}
+      >
         <Server className="size-3.5" /> Start staging
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Start the staging server</DialogTitle>
-            <DialogDescription>
-              One server from the base, not tied to an issue. It shuts down like a playtest when
-              nobody plays on it.
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            className="space-y-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submit();
-            }}
-          >
-            <Label htmlFor="staging-branch">Branch</Label>
-            <Input
-              id="staging-branch"
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
-              className="font-mono"
-              autoFocus
-            />
-          </form>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button disabled={!branch.trim() || start.isPending} onClick={submit}>
-              Start
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }
