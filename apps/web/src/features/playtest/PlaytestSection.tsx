@@ -13,6 +13,7 @@ import { buildAgentPrompt } from './utils/agentPrompt';
 import { playtestPath } from './utils/paths';
 
 const REPOSITORY = 'BetterPvP/BetterPvP';
+const BASE_BRANCH = 'camps/main';
 
 // The top of the issue panel: the prompt for an AI agent and, once the issue has a
 // branch in the playtest repository, its playtest's approvals with a link to the
@@ -37,6 +38,7 @@ export default function PlaytestSection({
       issueUrl: `${window.location.origin}${issuePath(ref, issue.sequenceNumber)}`,
       playtestUrl: `${window.location.origin}${playtestPath(ref, issue.identifier)}`,
       branch: buildIssueBranchName(issue, session?.user, project.branchNameTemplate),
+      baseBranch: BASE_BRANCH,
       repository: REPOSITORY,
       columns: project.columns,
       startColumnId: data?.settings?.autoStartColumnId ?? null,
