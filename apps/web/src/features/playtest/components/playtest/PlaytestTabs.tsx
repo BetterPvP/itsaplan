@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { IssuePlaytest, LogLine } from '../../services/playtestApi';
+import type { IssuePlaytest, LogLine, PlaytestRef } from '../../services/playtestApi';
 import PlaytestConsole from './PlaytestConsole';
 import PlaytestFiles from './PlaytestFiles';
 import PlaytestPlayers from './PlaytestPlayers';
@@ -13,13 +13,13 @@ type Tab = 'console' | 'files' | 'players' | 'startup';
 // Console, config files, players and ops, and the startup log, each shown to someone
 // allowed to see it. The sensitive toggle reveals IPs and secrets in the logs.
 export default function PlaytestTabs({
-  issueId,
+  target,
   data,
   log,
   reveal,
   onReveal,
 }: {
-  issueId: number;
+  target: PlaytestRef;
   data: IssuePlaytest;
   log: LogLine[];
   reveal: boolean;
@@ -70,7 +70,7 @@ export default function PlaytestTabs({
       </div>
       {tab === 'console' && (
         <PlaytestConsole
-          issueId={issueId}
+          target={target}
           log={log}
           canRun={can.sendCommands && !!p && p.stage !== 'ended'}
           canShare={can.shareLogs}
@@ -79,7 +79,7 @@ export default function PlaytestTabs({
       )}
       {tab === 'files' &&
         (connected ? (
-          <PlaytestFiles issueId={issueId} canEdit={can.editFiles} />
+          <PlaytestFiles target={target} canEdit={can.editFiles} />
         ) : (
           <p className="py-6 text-sm text-muted-foreground">
             The files can be opened while the server is up.
@@ -87,7 +87,7 @@ export default function PlaytestTabs({
         ))}
       {tab === 'players' && (
         <PlaytestPlayers
-          issueId={issueId}
+          target={target}
           online={p?.metrics?.players ?? []}
           ops={p?.ops ?? []}
           canOp={can.opPlayers && connected}
@@ -95,7 +95,7 @@ export default function PlaytestTabs({
       )}
       {tab === 'startup' && (
         <StartupLog
-          issueId={issueId}
+          target={target}
           reveal={reveal}
           canShare={can.shareLogs}
           version={`${p?.stages.boot ?? 0}-${p?.stages.ready ?? 0}`}

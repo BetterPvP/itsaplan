@@ -3,17 +3,23 @@ import { useQuery } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { playtestApi, playtestKeys } from '../../services/playtestApi';
+import { playtestApi, playtestKeys, type PlaytestRef } from '../../services/playtestApi';
 import PlaytestFileEditor from './PlaytestFileEditor';
 
 // The server's editable config files, those matching the project's patterns. A dot
 // marks a file that differs from the base.
-export default function PlaytestFiles({ issueId, canEdit }: { issueId: number; canEdit: boolean }) {
+export default function PlaytestFiles({
+  target,
+  canEdit,
+}: {
+  target: PlaytestRef;
+  canEdit: boolean;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
   const files = useQuery({
-    queryKey: playtestKeys.files(issueId),
+    queryKey: playtestKeys.files(target),
     queryFn: async () => {
-      const res = await playtestApi.files(issueId);
+      const res = await playtestApi.files(target);
       return res.data ?? [];
     },
   });
@@ -71,7 +77,7 @@ export default function PlaytestFiles({ issueId, canEdit }: { issueId: number; c
       </div>
       <div className="min-w-0 flex-1">
         {selected ? (
-          <PlaytestFileEditor key={selected} issueId={issueId} path={selected} canEdit={canEdit} />
+          <PlaytestFileEditor key={selected} target={target} path={selected} canEdit={canEdit} />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
             Pick a file to view or edit it.

@@ -1,20 +1,20 @@
 import Link from 'next/link';
 import { ExternalLink, GitBranch, GitPullRequest } from 'lucide-react';
-import type { IssuePlaytest } from '../../services/playtestApi';
+import type { IssuePlaytest, PlaytestRef } from '../../services/playtestApi';
 import { shortCommit } from '../../utils/format';
 import CopyAddress from '../CopyAddress';
 import StagePill from '../StagePill';
 import PlaytestPageActions from './PlaytestPageActions';
 
 // The playtest's issue, stage, branch, pull request and server address, with its
-// actions.
+// actions. The staging server has no issue to link.
 export default function PlaytestHeader({
-  issueId,
+  target,
   issueHref,
   data,
 }: {
-  issueId: number;
-  issueHref: string;
+  target: PlaytestRef;
+  issueHref: string | null;
   data: IssuePlaytest;
 }) {
   const p = data.playtest;
@@ -22,9 +22,13 @@ export default function PlaytestHeader({
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0 space-y-1.5">
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={issueHref} className="text-sm text-muted-foreground hover:text-foreground">
-            {data.identifier}
-          </Link>
+          {issueHref ? (
+            <Link href={issueHref} className="text-sm text-muted-foreground hover:text-foreground">
+              {data.identifier}
+            </Link>
+          ) : (
+            <span className="text-sm text-muted-foreground">{data.identifier}</span>
+          )}
           {p && <StagePill stage={p.stage} failed={p.failed} waiting={p.waiting} />}
         </div>
         <h1 className="text-lg leading-snug font-semibold">{data.title}</h1>
@@ -59,7 +63,7 @@ export default function PlaytestHeader({
           {p?.address && p.stage !== 'ended' && <CopyAddress address={p.address} />}
         </div>
       </div>
-      <PlaytestPageActions issueId={issueId} data={data} />
+      <PlaytestPageActions target={target} data={data} />
     </div>
   );
 }

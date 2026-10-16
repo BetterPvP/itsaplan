@@ -9,31 +9,32 @@ import {
   type Metrics,
   type PlaytestState,
   type Review,
+  type PlaytestRef,
 } from '../services/playtestApi';
 
 const MAX_LOG_LINES = 8000;
 
-// An issue's playtest, kept current by the event stream while `live` is on. With
+// An issue's playtest or the staging server, kept current by the event stream while `live` is on. With
 // `reveal` the log shows sensitive values, for someone allowed to see them.
-export function usePlaytest(issueId: number | null, live: boolean, reveal = false) {
+export function usePlaytest(target: PlaytestRef | null, live: boolean, reveal = false) {
   const qc = useQueryClient();
   const query = useQuery({
-    queryKey: playtestKeys.issue(issueId ?? 0),
-    queryFn: () => playtestApi.get(issueId!),
-    enabled: issueId != null,
+    queryKey: playtestKeys.issue(target ?? 0),
+    queryFn: () => playtestApi.get(target!),
+    enabled: target != null,
   });
   const [log, setLog] = useState<LogLine[]>([]);
   const lastSeq = useRef(0);
-  const streaming = live && issueId != null && !!query.data?.configured && !!query.data.eligible;
+  const streaming = live && target != null && !!query.data?.configured && !!query.data.eligible;
 
   useEffect(() => {
-    if (!streaming || issueId == null) return;
+    if (!streaming || target == null) return;
     const abort = new AbortController();
     let retry = 1000;
     lastSeq.current = 0;
     setLog([]);
     const patch = (fn: (old: IssuePlaytest) => IssuePlaytest) =>
-      qc.setQueryData<IssuePlaytest>(playtestKeys.issue(issueId), (old) => (old ? fn(old) : old));
+      qc.setQueryData<IssuePlaytest>(playtestKeys.issue(target), (old) => (old ? fn(old) : old));
 
     const apply = (event: string, data: unknown) => {
       if (event === 'state') {
@@ -65,7 +66,7 @@ export function usePlaytest(issueId: number | null, live: boolean, reveal = fals
     const connect = async () => {
       while (!abort.signal.aborted) {
         try {
-          const res = await playtestApi.events(issueId, lastSeq.current, reveal, abort.signal);
+          const res = await playtestApi.events(target, lastSeq.current, reveal, abort.signal);
           if (!res.ok || !res.body) throw new Error(String(res.status));
           retry = 1000;
           const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -92,7 +93,7 @@ export function usePlaytest(issueId: number | null, live: boolean, reveal = fals
     };
     void connect();
     return () => abort.abort();
-  }, [streaming, issueId, reveal, qc]);
+  }, [streaming, target, reveal, qc]);
 
   return { ...query, log };
 }

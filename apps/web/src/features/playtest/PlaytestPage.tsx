@@ -64,7 +64,7 @@ export default function PlaytestPage() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4 px-6 py-6">
       {back}
-      <PlaytestHeader issueId={issueId.data} issueHref={issuePath(ref, seq)} data={data} />
+      <PlaytestHeader target={issueId.data} issueHref={issuePath(ref, seq)} data={data} />
       {!data.eligible && (
         <p className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
           The issue has no branch or pull request linked in the playtest repository yet.
@@ -73,7 +73,7 @@ export default function PlaytestPage() {
       {p && <MetricsStrip playtest={p} />}
       {p ? (
         <PlaytestTabs
-          issueId={issueId.data}
+          target={issueId.data}
           data={data}
           log={log}
           reveal={reveal}
