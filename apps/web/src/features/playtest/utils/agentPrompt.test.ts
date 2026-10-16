@@ -30,7 +30,7 @@ describe('buildAgentPrompt', () => {
     );
     assert.match(prompt, /pull request into `camps\/main`/);
     assert.match(prompt, /"Closes CLANS-4 \(https:\/\/plan\.example\/bpvp\/issue\/CLANS-4\)"/);
-    assert.match(prompt, /move CLANS-4 to the "Playtest" column/);
+    assert.match(prompt, /has \[play\] items, move CLANS-4 to the "Playtest" column/);
     assert.match(prompt, /Never playtest yourself/);
     assert.match(prompt, /to "Done" ends its server\. With the "World change" label/);
     assert.match(prompt, /to "Canceled" ends its server/);
@@ -45,6 +45,15 @@ describe('buildAgentPrompt', () => {
       /open subtasks are findings from earlier playtests\. Fix them on the same branch and move each fixed one to "Done"/,
     );
     assert.match(prompt, /1\. Move CLANS-4 to the "In Progress" column/);
+  });
+
+  it('keeps issues without [play] items, or in another repository, off the playtest servers', () => {
+    const prompt = buildAgentPrompt(input);
+    assert.match(
+      prompt,
+      /no \[play\] items, or one whose work is in another repository, gets no playtest server\. Leave it in the "In Progress" column/,
+    );
+    assert.match(prompt, /a "Repo:" line\), the work happens there instead/);
   });
 
   it('leaves the playtest start to a person when the project has no start column', () => {
