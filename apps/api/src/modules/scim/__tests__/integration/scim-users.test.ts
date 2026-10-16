@@ -223,6 +223,15 @@ describe('SCIM users', () => {
       });
     });
 
+    it('caps a page size above the limit instead of refusing it', async () => {
+      const { scim } = await setupScim();
+
+      const res = await scim.scim.v2.Users.get({ query: { startIndex: 1, count: 1000 } });
+
+      expect(res.status).toBe(200);
+      expect(res.data).toMatchObject({ totalResults: 1, startIndex: 1 });
+    });
+
     it('finds one account by userName', async () => {
       const { scim } = await setupScim();
       await scim.scim.v2.Users.post(scimUserBody());
