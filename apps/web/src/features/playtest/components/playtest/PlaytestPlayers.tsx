@@ -3,25 +3,25 @@ import { ShieldCheck, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePlaytestCommand } from '../../hooks/usePlaytestCommand';
-import { playtestApi } from '../../services/playtestApi';
+import { playtestApi, type PlaytestRef } from '../../services/playtestApi';
 
 const PLAYER = /^[A-Za-z0-9_]{1,16}$/;
 
 // Who is online and who is op. With the permission, op anyone by name and deop.
 export default function PlaytestPlayers({
-  issueId,
+  target,
   online,
   ops,
   canOp,
 }: {
-  issueId: number;
+  target: PlaytestRef;
   online: string[];
   ops: string[];
   canOp: boolean;
 }) {
   const [name, setName] = useState('');
   const op = usePlaytestCommand((player: string, value: boolean) =>
-    playtestApi.op(issueId, player, value),
+    playtestApi.op(target, player, value),
   );
   const opped = new Set(ops.map((o) => o.toLowerCase()));
   const button = (player: string) =>

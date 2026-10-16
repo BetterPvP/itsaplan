@@ -124,33 +124,42 @@ export type PlaytestConfig = {
 
 export type PlaytestAction = 'start' | 'restart' | 'redeploy' | 'start-again' | 'end' | 'promote';
 
-const base = (issueId: number) => `/issues/${issueId}/playtest`;
+// An issue's playtest by the issue's id, or the staging server by the key of the project
+// whose page shows it.
+export type PlaytestRef = number | string;
+
+const base = (target: PlaytestRef) =>
+  typeof target === 'number'
+    ? `/issues/${target}/playtest`
+    : `/projects/${encodeURIComponent(target)}/playtest/staging`;
 const post = <T>(path: string, body?: unknown) =>
   request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) });
 const project = (projectKey: string) => `/projects/${encodeURIComponent(projectKey)}`;
 
 export const playtestApi = {
-  get: (issueId: number) => request<IssuePlaytest>(base(issueId)),
-  action: (issueId: number, action: PlaytestAction) =>
-    post<CommandResult & { waiting?: boolean }>(`${base(issueId)}/${action}`),
-  console: (issueId: number, command: string) =>
-    post<CommandResult>(`${base(issueId)}/console`, { command }),
-  op: (issueId: number, player: string, op: boolean) =>
-    post<CommandResult>(`${base(issueId)}/ops`, { player, op }),
-  review: (issueId: number, verdict: Verdict) =>
-    post<{ approvals: Review[] }>(`${base(issueId)}/approvals`, { verdict }),
-  unreview: (issueId: number) =>
-    request<{ approvals: Review[] }>(`${base(issueId)}/approvals`, { method: 'DELETE' }),
-  testers: (issueId: number) => post<{ ok: boolean }>(`${base(issueId)}/testers`),
-  share: (issueId: number, kind: 'console' | 'startup') =>
-    post<{ url: string }>(`${base(issueId)}/share`, { kind }),
-  startup: (issueId: number, reveal: boolean) =>
-    request<LogLine[]>(`${base(issueId)}/startup${reveal ? '?reveal=true' : ''}`),
-  files: (issueId: number) => request<CommandResult<FileEntry[]>>(`${base(issueId)}/files`),
-  file: (issueId: number, path: string) =>
-    request<CommandResult<FileContent>>(`${base(issueId)}/file?path=${encodeURIComponent(path)}`),
-  writeFile: (issueId: number, path: string, content: string) =>
-    request<CommandResult>(`${base(issueId)}/file`, {
+  get: (target: PlaytestRef) => request<IssuePlaytest>(base(target)),
+  startStaging: (projectKey: string, branch: string) =>
+    post<CommandResult>(`${base(projectKey)}/start`, { branch }),
+  action: (target: PlaytestRef, action: PlaytestAction) =>
+    post<CommandResult & { waiting?: boolean }>(`${base(target)}/${action}`),
+  console: (target: PlaytestRef, command: string) =>
+    post<CommandResult>(`${base(target)}/console`, { command }),
+  op: (target: PlaytestRef, player: string, op: boolean) =>
+    post<CommandResult>(`${base(target)}/ops`, { player, op }),
+  review: (target: PlaytestRef, verdict: Verdict) =>
+    post<{ approvals: Review[] }>(`${base(target)}/approvals`, { verdict }),
+  unreview: (target: PlaytestRef) =>
+    request<{ approvals: Review[] }>(`${base(target)}/approvals`, { method: 'DELETE' }),
+  testers: (target: PlaytestRef) => post<{ ok: boolean }>(`${base(target)}/testers`),
+  share: (target: PlaytestRef, kind: 'console' | 'startup') =>
+    post<{ url: string }>(`${base(target)}/share`, { kind }),
+  startup: (target: PlaytestRef, reveal: boolean) =>
+    request<LogLine[]>(`${base(target)}/startup${reveal ? '?reveal=true' : ''}`),
+  files: (target: PlaytestRef) => request<CommandResult<FileEntry[]>>(`${base(target)}/files`),
+  file: (target: PlaytestRef, path: string) =>
+    request<CommandResult<FileContent>>(`${base(target)}/file?path=${encodeURIComponent(path)}`),
+  writeFile: (target: PlaytestRef, path: string, content: string) =>
+    request<CommandResult>(`${base(target)}/file`, {
       method: 'PUT',
       body: JSON.stringify({ path, content }),
     }),
@@ -168,8 +177,8 @@ export const playtestApi = {
       )
     ).id,
   // The live stream: state, feed, approvals, metrics and log lines after `after`.
-  events: (issueId: number, after: number, reveal: boolean, signal: AbortSignal) =>
-    fetch(`${API_URL}${base(issueId)}/events?after=${after}${reveal ? '&reveal=true' : ''}`, {
+  events: (target: PlaytestRef, after: number, reveal: boolean, signal: AbortSignal) =>
+    fetch(`${API_URL}${base(target)}/events?after=${after}${reveal ? '&reveal=true' : ''}`, {
       credentials: 'include',
       cache: 'no-store',
       signal,
@@ -177,9 +186,10 @@ export const playtestApi = {
 };
 
 export const playtestKeys = {
-  issue: (issueId: number) => ['playtest', 'issue', issueId] as const,
+  issue: (target: PlaytestRef) => ['playtest', 'issue', target] as const,
   project: (projectKey: string) => ['playtest', 'project', projectKey] as const,
   config: (projectKey: string) => ['playtest', 'config', projectKey] as const,
-  files: (issueId: number) => ['playtest', 'files', issueId] as const,
-  startup: (issueId: number, reveal: boolean) => ['playtest', 'startup', issueId, reveal] as const,
+  files: (target: PlaytestRef) => ['playtest', 'files', target] as const,
+  startup: (target: PlaytestRef, reveal: boolean) =>
+    ['playtest', 'startup', target, reveal] as const,
 };

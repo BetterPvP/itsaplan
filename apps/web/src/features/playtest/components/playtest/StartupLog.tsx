@@ -4,27 +4,27 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { usePlaytestCommand } from '../../hooks/usePlaytestCommand';
-import { playtestApi, playtestKeys } from '../../services/playtestApi';
+import { playtestApi, playtestKeys, type PlaytestRef } from '../../services/playtestApi';
 
 // What Paper wrote from its start until it was ready.
 export default function StartupLog({
-  issueId,
+  target,
   reveal,
   canShare,
   version,
 }: {
-  issueId: number;
+  target: PlaytestRef;
   reveal: boolean;
   canShare: boolean;
   // Changes when the server starts or becomes ready, so the log is read again.
   version: string;
 }) {
   const log = useQuery({
-    queryKey: [...playtestKeys.startup(issueId, reveal), version],
-    queryFn: () => playtestApi.startup(issueId, reveal),
+    queryKey: [...playtestKeys.startup(target, reveal), version],
+    queryFn: () => playtestApi.startup(target, reveal),
   });
   const share = usePlaytestCommand(async () => {
-    const { url } = await playtestApi.share(issueId, 'startup');
+    const { url } = await playtestApi.share(target, 'startup');
     await navigator.clipboard.writeText(url).catch(() => {});
     toast.success('Startup log shared, link copied', { description: url });
     return { ok: true };
