@@ -1,3 +1,4 @@
+import { listDevelopmentRepositories, listManagedBranches } from '#modules/git/connections-service';
 import { listIssueDevelopmentLinks, type DevelopmentLink } from '#modules/git/development';
 import { getIssue } from '#modules/issues/service';
 import { getProjectById } from '#modules/projects/service';
@@ -51,6 +52,27 @@ export async function issueTarget(issueId: number) {
     issueUrl: `${appUrl()}/${project.teamRef}/issue/${issue.identifier}`,
     playtestUrl: `${appUrl()}/${project.teamRef}/${project.key}/playtests/${issue.identifier}`,
   };
+}
+
+// The branches of the playtest repository, for picking the staging server's, through
+// the project's connection to it. At most five pages, the default branch first.
+export async function playtestRepositoryBranches(projectId: number) {
+  const repo = (await listDevelopmentRepositories(projectId)).find(
+    (r) => r.fullName.toLowerCase() === repository(),
+  );
+  if (!repo) throw new HttpError(409, `The project is not connected to ${repository()}`);
+  const branches: string[] = [];
+  let defaultBranch: string | null = null;
+  for (let page: number | null = 1; page != null && page <= 5;) {
+    const result = await listManagedBranches(projectId, repo.id, page);
+    branches.push(...result.branches);
+    defaultBranch ??= result.defaultBranch;
+    page = result.nextPage;
+  }
+  branches.sort(
+    (a, b) => Number(b === defaultBranch) - Number(a === defaultBranch) || a.localeCompare(b),
+  );
+  return { branches, defaultBranch };
 }
 
 // Every playtest permission a person holds on a project, for the pages to show only

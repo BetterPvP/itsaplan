@@ -138,6 +138,8 @@ const project = (projectKey: string) => `/projects/${encodeURIComponent(projectK
 
 export const playtestApi = {
   get: (target: PlaytestRef) => request<IssuePlaytest>(base(target)),
+  stagingBranches: (projectKey: string) =>
+    request<{ branches: string[]; defaultBranch: string | null }>(`${base(projectKey)}/branches`),
   startStaging: (projectKey: string, branch: string) =>
     post<CommandResult>(`${base(projectKey)}/start`, { branch }),
   action: (target: PlaytestRef, action: PlaytestAction) =>
@@ -190,6 +192,7 @@ export const playtestKeys = {
   project: (projectKey: string) => ['playtest', 'project', projectKey] as const,
   config: (projectKey: string) => ['playtest', 'config', projectKey] as const,
   files: (target: PlaytestRef) => ['playtest', 'files', target] as const,
+  branches: (projectKey: string) => ['playtest', 'branches', projectKey] as const,
   startup: (target: PlaytestRef, reveal: boolean) =>
     ['playtest', 'startup', target, reveal] as const,
 };
