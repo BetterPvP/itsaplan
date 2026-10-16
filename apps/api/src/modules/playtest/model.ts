@@ -21,6 +21,9 @@ export const targetQuery = t.Object({ actor: t.Optional(t.String({ maxLength: 10
 export const reviewBody = t.Object({
   verdict: t.Union([t.Literal('approved'), t.Literal('changes')]),
 });
+export const stagingStartBody = t.Object({
+  branch: t.String({ minLength: 1, maxLength: 200, pattern: '^[A-Za-z0-9._/-]+$' }),
+});
 export const shareBody = t.Object({
   kind: t.Union([t.Literal('console'), t.Literal('startup')]),
 });

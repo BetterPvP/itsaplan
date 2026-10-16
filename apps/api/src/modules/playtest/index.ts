@@ -26,6 +26,7 @@ import {
   playtestsConfigured,
   type Actor,
 } from './service';
+import { stagingRoutes } from './staging';
 
 const serviceErrors = { ...commonErrors, ...errors(409, 502, 503) };
 const ok = { 200: ServiceResponse, ...serviceErrors };
@@ -39,6 +40,7 @@ const actorOf = (user: User): Actor | null =>
 export const playtestRoutes = new Elysia({ name: 'playtest', detail: { tags: ['Playtest'] } })
   .use(authContext)
   .use(guards)
+  .use(stagingRoutes)
   // One guard per playtest permission resource, each set to the action a route needs.
   .macro({
     playtestIssue: entityGuard('work_items', 'Issue not found', byIssue),

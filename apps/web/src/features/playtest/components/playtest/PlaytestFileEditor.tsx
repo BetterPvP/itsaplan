@@ -3,17 +3,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { usePlaytestCommand } from '../../hooks/usePlaytestCommand';
-import { playtestApi, playtestKeys } from '../../services/playtestApi';
+import { playtestApi, playtestKeys, type PlaytestRef } from '../../services/playtestApi';
 import { diffLines } from '../../utils/diff';
 
 // One config file: edit it, or see how the edit differs from the base. Saving writes
 // the file on the server; most plugins read it on the next restart.
 export default function PlaytestFileEditor({
-  issueId,
+  target,
   path,
   canEdit,
 }: {
-  issueId: number;
+  target: PlaytestRef;
   path: string;
   canEdit: boolean;
 }) {
@@ -21,11 +21,11 @@ export default function PlaytestFileEditor({
   const [draft, setDraft] = useState<string | null>(null);
   const [showDiff, setShowDiff] = useState(false);
   const file = useQuery({
-    queryKey: ['playtest', 'file', issueId, path],
-    queryFn: async () => (await playtestApi.file(issueId, path)).data!,
+    queryKey: ['playtest', 'file', target, path],
+    queryFn: async () => (await playtestApi.file(target, path)).data!,
   });
   const save = usePlaytestCommand(
-    (content: string) => playtestApi.writeFile(issueId, path, content),
+    (content: string) => playtestApi.writeFile(target, path, content),
     `Saved ${path}`,
   );
   const content = draft ?? file.data?.content ?? '';
@@ -68,8 +68,8 @@ export default function PlaytestFileEditor({
               save.mutate([content], {
                 onSuccess: () => {
                   setDraft(null);
-                  void qc.invalidateQueries({ queryKey: ['playtest', 'file', issueId, path] });
-                  void qc.invalidateQueries({ queryKey: playtestKeys.files(issueId) });
+                  void qc.invalidateQueries({ queryKey: ['playtest', 'file', target, path] });
+                  void qc.invalidateQueries({ queryKey: playtestKeys.files(target) });
                 },
               })
             }

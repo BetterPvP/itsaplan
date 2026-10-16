@@ -29,25 +29,29 @@ import {
   type IssuePlaytest,
   type PlaytestAction,
   type Verdict,
+  type PlaytestRef,
 } from '../../services/playtestApi';
+import StartStagingButton from '../playtests/StartStagingButton';
 import ConfirmAction from './ConfirmAction';
 
 type Confirming = 'end' | 'promote' | null;
 
-// The playtest's actions, each shown only to someone allowed to take it.
+// The playtest's actions, each shown only to someone allowed to take it. The staging
+// server has no reviews and asks for no testers.
 export default function PlaytestPageActions({
-  issueId,
+  target,
   data,
 }: {
-  issueId: number;
+  target: PlaytestRef;
   data: IssuePlaytest;
 }) {
   const qc = useQueryClient();
   const [confirming, setConfirming] = useState<Confirming>(null);
   const { permissions: can, playtest } = data;
-  const refresh = () => void qc.invalidateQueries({ queryKey: playtestKeys.issue(issueId) });
+  const staging = typeof target === 'string';
+  const refresh = () => void qc.invalidateQueries({ queryKey: playtestKeys.issue(target) });
   const action = usePlaytestCommand(async (a: PlaytestAction) => {
-    const res = await playtestApi.action(issueId, a);
+    const res = await playtestApi.action(target, a);
     if (res.waiting)
       toast('Waiting for a free server', { description: 'The project runs as many as it allows.' });
     return res;
@@ -56,12 +60,12 @@ export default function PlaytestPageActions({
   // A review sets or replaces the caller's verdict on the current build; clicking the
   // verdict they already gave takes it back.
   const review = usePlaytestCommand(async (verdict: Verdict | null) => {
-    if (verdict) await playtestApi.review(issueId, verdict);
-    else await playtestApi.unreview(issueId);
+    if (verdict) await playtestApi.review(target, verdict);
+    else await playtestApi.unreview(target);
     return { ok: true };
   }, 'Review saved');
   const testers = usePlaytestCommand(async () => {
-    await playtestApi.testers(issueId);
+    await playtestApi.testers(target);
     return { ok: true };
   }, 'Asked for testers on Discord');
 
@@ -102,7 +106,8 @@ export default function PlaytestPageActions({
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {can.start && !playtest && data.eligible && (
+      {can.start && !playtest && staging && <StartStagingButton projectKey={target} />}
+      {can.start && !playtest && !staging && data.eligible && (
         <Button
           size="sm"
           className="h-8 gap-1.5"
@@ -112,7 +117,7 @@ export default function PlaytestPageActions({
           <Play className="size-3.5" /> Start playtest
         </Button>
       )}
-      {can.review && (
+      {can.review && !staging && (
         <>
           <Button
             size="sm"
@@ -154,7 +159,7 @@ export default function PlaytestPageActions({
           </Button>
         </>
       )}
-      {can.requestTesters && (
+      {can.requestTesters && !staging && (
         <Tooltip>
           <TooltipTrigger asChild>
             <span>

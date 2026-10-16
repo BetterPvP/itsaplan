@@ -6,14 +6,17 @@ import ListSkeleton from '@/components/common/skeleton/ListSkeleton';
 import NeedsTestersBanner from './components/playtests/NeedsTestersBanner';
 import PlaytestCard from './components/playtests/PlaytestCard';
 import PlaytestRow from './components/playtests/PlaytestRow';
+import StagingCard from './components/playtests/StagingCard';
+import StartStagingButton from './components/playtests/StartStagingButton';
 import PlaytestsToolbar, {
   type PlaytestFilter,
   type PlaytestLayout,
 } from './components/playtests/PlaytestsToolbar';
 import { isLive, useProjectPlaytests } from './hooks/useProjectPlaytests';
+import { useStaging } from './hooks/useStaging';
 import { useStoredChoice } from './hooks/useStoredChoice';
 import type { ProjectPlaytest } from './services/playtestApi';
-import { playtestPath } from './utils/paths';
+import { playtestPath, stagingPath } from './utils/paths';
 
 const LAYOUTS = ['cards', 'list'] as const;
 
@@ -28,6 +31,8 @@ export default function PlaytestsPage() {
   const { project } = useShell();
   const ref = project?.project.ref;
   const { data, isPending, isError, error } = useProjectPlaytests(ref);
+  const staging = useStaging(ref).data;
+  const stagingUp = staging?.playtest != null && staging.playtest.stage !== 'ended';
   const [filter, setFilter] = useState<PlaytestFilter>('all');
   const [layout, setLayout] = useStoredChoice<PlaytestLayout>('playtests-layout', LAYOUTS, 'cards');
 
@@ -44,12 +49,18 @@ export default function PlaytestsPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4 px-6 py-6">
-      <div>
-        <h1 className="text-lg font-semibold">Playtests</h1>
-        <p className="text-sm text-muted-foreground">
-          Every playtest server of the project, with what it runs and who has approved it.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-semibold">Playtests</h1>
+          <p className="text-sm text-muted-foreground">
+            Every playtest server of the project, with what it runs and who has approved it.
+          </p>
+        </div>
+        {staging?.configured && staging.permissions.start && !stagingUp && (
+          <StartStagingButton projectKey={ref} lastBranch={staging.playtest?.branch} />
+        )}
       </div>
+      {stagingUp && <StagingCard playtest={staging.playtest!} href={stagingPath(ref)} />}
       {waiting[0] && (
         <NeedsTestersBanner playtest={waiting[0]} href={playtestPath(ref, waiting[0].issue)} />
       )}
