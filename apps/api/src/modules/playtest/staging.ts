@@ -14,7 +14,14 @@ import {
   shareBody,
   stagingStartBody,
 } from './model';
-import { call, forward, playtestPermissions, playtestsConfigured, type Actor } from './service';
+import {
+  call,
+  forward,
+  playtestPermissions,
+  playtestRepositoryBranches,
+  playtestsConfigured,
+  type Actor,
+} from './service';
 
 // The staging server: one server of a chosen branch that belongs to no issue, at
 // staging.<domain>. The playtest service keeps it under the key STAGING. Its routes
@@ -147,6 +154,12 @@ export const stagingRoutes = new Elysia({
       detail: { summary: 'Write a file of the staging server' },
     },
   )
+
+  .get(`${ROUTE}/branches`, async ({ project }) => playtestRepositoryBranches(project.id), {
+    permission: ['playtests', 'create'],
+    response: ok,
+    detail: { summary: 'List the branches the staging server can run' },
+  })
 
   .post(
     `${ROUTE}/start`,
