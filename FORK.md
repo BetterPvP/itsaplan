@@ -38,6 +38,7 @@ changes. Each one is a likely rebase conflict when upstream edits the same files
 | upstream test fix    | Upstream's #561, the fix for a flaky import test. The rebase drops it once a release contains it. |
 | playtest permissions | Team settings → Roles: one resource per playtest action (see, start, restart, end, save as base, review, testers, console, operators, files, log sharing, sensitive values, settings), each with a hint line. |
 | SCIM page size      | SCIM list requests with a `count` above 200 get 200 results instead of an error, so Pocket ID (which asks for 1000) can sync. |
+| team members without invites | Team settings → Members and god mode's team panel: Add member puts an existing account straight into the team, as an invite would. God mode's user panel edits the display name. |
 
 When the sync reports a conflict in one, rebase by hand onto the tag the notification
 names, fix the feature commit, keep its trailer, and push to `bpvp` with

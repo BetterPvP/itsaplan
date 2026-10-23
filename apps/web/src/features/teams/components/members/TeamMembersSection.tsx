@@ -34,6 +34,7 @@ import TeamInviteDialog from './TeamInviteDialog';
 import TeamInvitesList from './TeamInvitesList';
 import { mayRenewInvite } from '@/utils/invites';
 import TeamMemberRow from './TeamMemberRow';
+import TeamAddMemberButton from '@/features/direct-members/TeamAddMemberButton';
 
 // The team's members, a page at a time, with the invites that have not been answered
 // yet listed apart above them. People and agents work on one board, so both are listed
@@ -95,10 +96,13 @@ export default function TeamMembersSection({ teamId }: { teamId: number }) {
       wide
       actions={
         canInvite ? (
-          <Button size="sm" className="h-8 gap-1.5" onClick={() => setInviting(true)}>
-            <Plus className="size-3.5" />
-            {tInvite('action')}
-          </Button>
+          <div className="flex gap-2">
+            <TeamAddMemberButton teamId={teamId} teamName={team.name} teamRole={team.role} />
+            <Button size="sm" className="h-8 gap-1.5" onClick={() => setInviting(true)}>
+              <Plus className="size-3.5" />
+              {tInvite('action')}
+            </Button>
+          </div>
         ) : undefined
       }
     >

@@ -17,6 +17,7 @@ import { useDeleteInstanceUser, useInstanceUserQuery } from '../../services/god.
 import { useProviderList } from '../../hooks/useProviderList';
 import GodUserProjectCard from './GodUserProjectCard';
 import GodUserVerifyButton from './GodUserVerifyButton';
+import GodUserNameEditor from '@/features/direct-members/GodUserNameEditor';
 
 // One fact in the account grid: a quiet label with the value under it. Reading down
 // a column beats a row of label/value pairs when the values differ in length.
@@ -136,6 +137,9 @@ export default function GodUserDetailPanel({
             <ListSkeleton rows={5} rowClassName="h-12" />
           ) : (
             <>
+              {!user.isAgent && (
+                <GodUserNameEditor key={user.id} userId={user.id} name={user.name} />
+              )}
               {!user.emailVerified && (
                 <div className="flex items-start gap-3 rounded-lg bg-muted/60 p-4">
                   <MailWarning className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

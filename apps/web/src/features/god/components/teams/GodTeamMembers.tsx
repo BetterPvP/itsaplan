@@ -11,6 +11,7 @@ import SearchInput from '@/components/common/SearchInput';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useInstanceTeamMembersQuery } from '../../services/god.service';
+import GodTeamAddMemberButton from '@/features/direct-members/GodTeamAddMemberButton';
 
 // Everyone in the team, people and agents alike, a page at a time. The rank is the
 // fixed team one, so there is no permission matrix to unfold behind the row.
@@ -28,6 +29,7 @@ export default function GodTeamMembers({ teamId }: { teamId: number }) {
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-medium">{t('members')}</h3>
         {total > 0 && <span className="text-xs text-muted-foreground">{total}</span>}
+        <GodTeamAddMemberButton teamId={teamId} />
       </div>
 
       <SearchInput
