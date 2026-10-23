@@ -14,7 +14,7 @@ everything else.
 
 ## Keeping the fork thin
 
-The daily sync rebases our commits onto each upstream release, so every line we change in
+The weekly sync rebases our commits onto each upstream release, so every line we change in
 an upstream file is a possible conflict. `scripts/bpvp/check-fork.sh` enforces these rules
 and runs in the sync.
 
@@ -46,7 +46,7 @@ names, fix the feature commit, keep its trailer, and push to `bpvp` with
 
 ## Sync
 
-`.github/workflows/bpvp-sync.yml` runs daily, on a push to `bpvp`, and by hand.
+`.github/workflows/bpvp-sync.yml` runs weekly (Mondays), on a push to `bpvp`, and by hand.
 
 1. When upstream has a newer release tag, it rebases `bpvp` onto it and pushes the result to
    `bpvp-candidate`.

@@ -4,7 +4,7 @@ name: BetterPvP sync
 # deploys them to plan.brauw.dev. See FORK.md.
 on:
   schedule:
-    - cron: '17 6 * * *'
+    - cron: '17 6 * * 1'
   push:
     branches: [bpvp]
   workflow_dispatch:
